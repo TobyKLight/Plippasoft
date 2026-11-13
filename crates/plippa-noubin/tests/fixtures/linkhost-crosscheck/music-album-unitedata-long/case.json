@@ -1,0 +1,25 @@
+{
+  "id": "music-album-unitedata-long",
+  "description": "Multi-track paid music album with uniteData expectedFilename + expectedLength on every track, explicit URL-safe artist/title, contributors.",
+  "noudataVersion": "0.4.0",
+  "publishedUrlShape": "long",
+  "publicUrl": "https://noubin.com/n/aurora-band/northern-lights/ALBUM002/",
+  "longUrl": "https://noubin.com/n/aurora-band/northern-lights/ALBUM002/",
+  "shortUrl": "https://noub.in/ALBUM002/",
+  "metadataUrl": "https://noubin.com/n/aurora-band/northern-lights/ALBUM002/web.noudata",
+  "code": "ALBUM002",
+  "pathArtistSlug": "aurora-band",
+  "releaseSlug": "northern-lights",
+  "noudataRevision": 1,
+  "publishedFiles": [
+    "cover.webp",
+    "index.html",
+    "thumbnails/cover-1024.jpg",
+    "thumbnails/cover-1024.webp",
+    "thumbnails/cover-128.jpg",
+    "thumbnails/cover-128.webp",
+    "thumbnails/cover-512.jpg",
+    "thumbnails/cover-512.webp",
+    "web.noudata"
+  ]
+}

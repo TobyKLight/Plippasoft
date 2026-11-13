@@ -1,0 +1,23 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "The Show",
+  "playableItemProfile": "podcast",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Host"
+        }
+      ]
+    }
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "Episode 1",
+      "localFilePaths": [
+        "ep1.mp3"
+      ]
+    }
+  ]
+}

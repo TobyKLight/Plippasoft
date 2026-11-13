@@ -1,0 +1,44 @@
+[package]
+name = "plippa-server"
+version.workspace = true
+edition.workspace = true
+description = "Plippa media management and LAN web portal"
+publish = false
+
+[lib]
+name = "plippa_server"
+path = "src/lib.rs"
+
+[[bin]]
+name = "plippa-server"
+path = "src/main.rs"
+
+[dependencies]
+libc = { workspace = true }
+lofty = "0.22"
+plippa-audio = { workspace = true }
+plippa-board = { workspace = true }
+plippa-core = { workspace = true }
+plippa-image = { workspace = true }
+plippa-ipc-proto = { workspace = true }
+plippa-noubin = { workspace = true }
+plippa-store = { workspace = true }
+rand = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tiny_http = { workspace = true, features = ["ssl-rustls"] }
+ureq = { workspace = true }
+# SECFIX_03: the portal certificate is generated in-process. `ring` is already in the tree
+# (through ureq -> rustls); naming it directly adds no crate.
+ring = "0.17"
+
+[dev-dependencies]
+plippa-audio = { workspace = true, features = ["testsupport"] }
+plippa-engine = { path = "../plippa-engine" }
+tempfile = "3"
+# SECFIX_03: the tests are TLS *clients* for the portal, so that what they check is a real
+# handshake and not this crate agreeing with itself. Same version and provider as the server
+# side; no new crate.
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+rustls-pki-types = "1"

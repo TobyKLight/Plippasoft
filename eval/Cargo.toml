@@ -1,0 +1,70 @@
+# The evaluation workspace: hardware POC apps, bench tools and one-off experiments.
+#
+# These packages used to be members of the root workspace, which meant every
+# `cargo build --workspace` compiled them — and they need hardware crates
+# (libclang via bindgen, spidev, gpio-cdev) that a normal dev box or the Pi does
+# not have. They are now their own workspace so the root build never sees them.
+#
+#   cargo build --manifest-path eval/Cargo.toml -p poc2_warp_bench
+#   PROFILE=release scripts/deploy.sh eval warp_bench
+#
+# They are not part of the product and are not redistributed. See
+# `eval/USAGE.md` for the build/test notes and the libclang requirement.
+[workspace]
+resolver = "2"
+members = [
+    "poc2/audio_test_PCM5102",
+    "poc2/audio_test_warp_mouse",
+    "poc2/audio_test_warp_pulse",
+    "poc2/mouse_test",
+    "poc2/nfc_test_PN532",
+    "poc2/nfc2audio_test_PN532_PCM5102",
+    "poc2/screen_test_ILI9341_240x320",
+    "poc2/screen_anim_ILI9341_bouncy",
+    "poc2/qr_probe",
+    "poc2/led_test",
+    "poc2/ui_test",
+    "poc2/encoder_res_eval",
+    "poc2/warp_bench",
+]
+
+# `poc2/qr_probe` links the production `plippa-core` crate by path (see the
+# dependency list below). `plippa-core` itself stays a member of the root
+# workspace, so this workspace depends on it by path rather than owning it; that
+# is why it appears under `[workspace.dependencies]` and not in `members` above.
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+# Only what the eval crates use. The production workspace keeps its own copy; the
+# two lists are independent on purpose so an eval experiment cannot loosen a
+# version the product depends on.
+[workspace.dependencies]
+anyhow = "1"
+ctrlc = "3.4"
+evdev = "0.12"
+nix = { version = "0.29", features = ["fs", "poll"] }
+rand = "0.8"
+embedded-graphics = "0.8"
+embedded-hal = "1"
+gpio-cdev = "0.6"
+i2cdev = "0.6"
+libc = "0.2"
+linux-embedded-hal = { version = "0.4", default-features = false }
+mipidsi = "0.10"
+pn532 = "0.5.0"
+libpulse-binding = "2.29"
+libpulse-simple-binding = "2.29"
+rubato = "0.16"
+signalsmith-stretch = "0.1"
+symphonia = { version = "0.5", default-features = false, features = ["mp3", "flac", "wav", "pcm"] }
+embedded-hal-02 = { package = "embedded-hal", version = "0.2.7" }
+linux-embedded-hal-03 = { package = "linux-embedded-hal", version = "0.3.2" }
+rs_ws281x = "0.5.1"
+plippa-core = { path = "../crates/plippa-core" }
+
+[patch.crates-io]
+# Paths are relative to this file (eval/), not to the repository root.
+# The same vendored wrapper the product builds, so the benches measure the same code.
+signalsmith-stretch = { path = "../third_party/signalsmith-stretch" }

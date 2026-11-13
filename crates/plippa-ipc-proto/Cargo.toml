@@ -1,0 +1,16 @@
+[package]
+name = "plippa-ipc-proto"
+version.workspace = true
+edition.workspace = true
+description = "Postcard IPC message stubs between plippa-engine, plippa-ui, and plippa-server"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+plippa-core = { workspace = true }
+postcard = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"

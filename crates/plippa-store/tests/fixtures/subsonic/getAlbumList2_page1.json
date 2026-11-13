@@ -1,0 +1,46 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "BandcampServer",
+    "serverVersion": "1.0",
+    "openSubsonic": true,
+    "albumList2": {
+      "album": [
+        {
+          "artist": "Fixture Artist",
+          "id": "a:1000000001",
+          "name": "Fixture Album One",
+          "duration": 1389,
+          "playCount": 0,
+          "songCount": 2,
+          "coverArt": "ca:3000000001",
+          "created": "20 Aug 2026 06:48:08 GMT",
+          "genre": "electronic",
+          "year": null
+        },
+        {
+          "artist": "Fixture Artist",
+          "id": "a:1000000002",
+          "name": "Fixture Album Two",
+          "duration": 2400,
+          "playCount": 0,
+          "songCount": 7,
+          "created": "2026-08-20T06:48:08Z",
+          "genre": "rock"
+        },
+        {
+          "artist": "Another Fixture",
+          "id": "a:1000000003",
+          "name": "Fixture Album Three",
+          "duration": 216,
+          "playCount": 0,
+          "songCount": 1,
+          "coverArt": "ca:3000000003",
+          "created": "20 Aug 2026 06:48:08 GMT",
+          "year": 2019
+        }
+      ]
+    }
+  }
+}

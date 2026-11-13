@@ -1,0 +1,19 @@
+PCB,Switch Reference,Purpose
+Front,SWE1_Encoder,Volume
+Front,SWE1_Push,
+Front,SW2,Play Mode
+Front,SWE3_Encoder,Assignable Encoder A
+Front,SWE3_Push,Assignable Encoder Push Button A
+Front,SWE4_Encoder,Assignable Encoder B
+Front,SWE4_Push,Assignable Encoder Push Button B
+Front,SWE5_Encoder,Navigate Menu
+Front,SWE5_Push,Menu Enter
+Front,SW6,Menu Back
+Front,SW7,Mic Enable
+,,
+Base_Top,SW1,Previous Track
+Base_Top,SW2,Rewind
+Base_Top,SW3,Play
+Base_Top,SW4,Fast Forward
+Base_Top,SW5,Next Track
+Base_Top,SW6,Record

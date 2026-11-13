@@ -1,0 +1,25 @@
+{
+  "id": "release-platform-types-long",
+  "description": "One releasePlatform of each platformType (store, DRMStore, streaming, other), a customVerb, plus furtherLinks.",
+  "noudataVersion": "0.4.0",
+  "publishedUrlShape": "long",
+  "publicUrl": "https://noubin.com/n/multi-platform/all-platforms/PLAT0009/",
+  "longUrl": "https://noubin.com/n/multi-platform/all-platforms/PLAT0009/",
+  "shortUrl": "https://noub.in/PLAT0009/",
+  "metadataUrl": "https://noubin.com/n/multi-platform/all-platforms/PLAT0009/web.noudata",
+  "code": "PLAT0009",
+  "pathArtistSlug": "multi-platform",
+  "releaseSlug": "all-platforms",
+  "noudataRevision": 1,
+  "publishedFiles": [
+    "cover.webp",
+    "index.html",
+    "thumbnails/cover-1024.jpg",
+    "thumbnails/cover-1024.webp",
+    "thumbnails/cover-128.jpg",
+    "thumbnails/cover-128.webp",
+    "thumbnails/cover-512.jpg",
+    "thumbnails/cover-512.webp",
+    "web.noudata"
+  ]
+}

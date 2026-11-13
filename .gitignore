@@ -1,0 +1,16 @@
+# Cargo workspace build output (shared root target + legacy per-crate targets)
+/target/
+**/target/
+
+# Rust backup files
+**/*.rs.bk
+
+# Local libclang workaround (audio_test_warp_*)
+**/.local-pkg/
+
+# Editor
+.vscode/
+
+
+# Test media is fetched by scripts/fetch-testmedia.sh (see USE OF TEST MEDIA.md)
+/assets/testMedia/

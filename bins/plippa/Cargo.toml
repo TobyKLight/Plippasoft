@@ -1,0 +1,26 @@
+[package]
+name = "plippa"
+version.workspace = true
+edition.workspace = true
+description = "Plippa launcher and watchdog"
+publish = false
+
+[lib]
+name = "plippa"
+path = "src/lib.rs"
+
+[[bin]]
+name = "plippa"
+path = "src/main.rs"
+
+[dependencies]
+plippa-core = { workspace = true }
+plippa-ipc-proto = { workspace = true }
+libc = { workspace = true }
+ctrlc = { workspace = true }
+
+[dev-dependencies]
+plippa-engine = { path = "../plippa-engine" }
+plippa-noubin = { workspace = true }
+plippa-core = { workspace = true }
+tempfile = "3"

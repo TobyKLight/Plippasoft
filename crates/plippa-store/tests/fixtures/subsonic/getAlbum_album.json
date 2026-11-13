@@ -1,0 +1,70 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "BandcampServer",
+    "serverVersion": "1.0",
+    "openSubsonic": true,
+    "album": {
+      "artist": "Fixture Artist",
+      "artistId": "b:4000000001",
+      "coverArt": "ca:3000000001",
+      "created": "20 Aug 2026 06:48:08 GMT",
+      "duration": 1389,
+      "genre": "electronic",
+      "genres": [
+        {
+          "name": "electronic"
+        }
+      ],
+      "id": "a:1000000001",
+      "name": "Fixture Album One",
+      "songCount": 2,
+      "song": [
+        {
+          "album": "Fixture Album One",
+          "albumId": "a:1000000001",
+          "artist": "Fixture Artist",
+          "artistId": "b:4000000001",
+          "contentType": "audio/mpeg",
+          "coverArt": "ca:3000000001",
+          "created": "20 Aug 2026 06:48:08 GMT",
+          "duration": 600,
+          "genre": "electronic",
+          "id": "t:2000000001",
+          "isDir": false,
+          "isVideo": false,
+          "parent": "a:1000000001",
+          "size": 19200000,
+          "suffix": "mp3",
+          "title": "Fixture Track A",
+          "track": 1,
+          "type": "music",
+          "year": 2026,
+          "bitRate": 320
+        },
+        {
+          "album": "Fixture Album One",
+          "albumId": "a:1000000001",
+          "artist": "Fixture Artist",
+          "artistId": "b:4000000001",
+          "contentType": "audio/flac",
+          "coverArt": "ca:3000000001",
+          "created": "20 Aug 2026 06:48:08 GMT",
+          "duration": 789,
+          "genre": "electronic",
+          "id": "t:2000000002",
+          "isDir": false,
+          "isVideo": false,
+          "parent": "a:1000000001",
+          "size": 45000000,
+          "suffix": "flac",
+          "title": "Fixture Track B",
+          "track": 2,
+          "type": "music",
+          "year": 2026
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "linkTrack",
+  "noubinKey": "Two.noubin.ABC123",
+  "noubinKeyNormalised": "two.noubin.abc123",
+  "playableItemTitle": "Two",
+  "referToReleaseNoudata": "_Album.noudata",
+  "mediaList": [
+    {
+      "mediaTitle": "Two",
+      "localFilePaths": [
+        "02 - Two.mp3"
+      ]
+    }
+  ]
+}

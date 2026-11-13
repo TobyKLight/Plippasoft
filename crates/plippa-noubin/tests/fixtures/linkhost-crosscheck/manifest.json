@@ -1,0 +1,16 @@
+{
+  "noudataVersion": "0.4.0",
+  "cases": [
+    "music-single-track-long",
+    "music-album-unitedata-long",
+    "music-album-free-download-short",
+    "audiobook-long",
+    "podcast-episode-short",
+    "mix-single-file-long",
+    "unicode-emoji-explicit-slugs-long",
+    "unicode-title-derived-slug-long",
+    "release-platform-types-long",
+    "free-single-track-no-cover-long",
+    "override-artist-various-short"
+  ]
+}

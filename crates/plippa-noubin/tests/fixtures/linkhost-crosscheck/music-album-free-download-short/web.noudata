@@ -1,0 +1,45 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Free Sessions",
+  "playableItemProfile": "music",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Open Hands"
+        }
+      ],
+      "description": "Free to download."
+    },
+    "coverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "cover.webp",
+          "imageWebURL": "https://noub.in/FREE0003/cover.webp?v=1"
+        }
+      ]
+    },
+    "releasePlatforms": [],
+    "furtherLinks": []
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "Session One",
+      "uniteData": {
+        "expectedFilename": "01 Session One",
+        "expectedLength": "2:30",
+        "freeDownloadURL": "https://files.example.com/free-sessions/01-session-one.flac"
+      }
+    },
+    {
+      "mediaTitle": "Session Two",
+      "uniteData": {
+        "expectedFilename": "02 Session Two",
+        "expectedLength": "3:10",
+        "freeDownloadURL": "https://files.example.com/free-sessions/02-session-two.flac"
+      }
+    }
+  ]
+}

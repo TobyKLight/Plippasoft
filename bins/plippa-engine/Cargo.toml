@@ -1,0 +1,42 @@
+[package]
+name = "plippa-engine"
+version.workspace = true
+edition.workspace = true
+description = "Plippa control plane and media playback"
+publish = false
+
+[lib]
+name = "plippa_engine"
+path = "src/lib.rs"
+
+[[bin]]
+name = "plippa-engine"
+path = "src/main.rs"
+
+[[bin]]
+name = "plippa-ipc-smoke-client"
+path = "src/bin/plippa_ipc_smoke_client.rs"
+
+[[bin]]
+name = "plippa-np"
+path = "src/bin/plippa_np.rs"
+
+[features]
+default = ["stretch"]
+# Signalsmith Stretch pitch-correct voice (needs g++ / the cross g++; off = in-tree WSOLA).
+stretch = ["plippa-audio/stretch"]
+# PipeWire-Pulse / PCM5102 RCA path (plippa-D-poc2). CI keeps default = mock.
+pulse = ["plippa-audio/pulse"]
+
+[dependencies]
+ctrlc = { workspace = true }
+plippa-audio = { workspace = true }
+plippa-board = { workspace = true }
+plippa-core = { workspace = true }
+plippa-ipc-proto = { workspace = true }
+plippa-noubin = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+plippa-audio = { workspace = true, features = ["testsupport"] }
+tempfile = "3"

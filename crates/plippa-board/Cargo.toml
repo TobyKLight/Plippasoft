@@ -1,0 +1,15 @@
+[package]
+name = "plippa-board"
+version.workspace = true
+edition.workspace = true
+description = "Board profile loader: Capabilities + pin/role map"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+plippa-core = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+toml = { workspace = true }
+
+[dev-dependencies]

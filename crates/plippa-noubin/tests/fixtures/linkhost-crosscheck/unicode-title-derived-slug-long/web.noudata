@@ -1,0 +1,31 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Café del Mar — Été 2026",
+  "playableItemProfile": "music",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "José González"
+        }
+      ]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "Bandcamp",
+        "platformType": "store",
+        "platformURL": "https://ada.bandcamp.com/album/first-light"
+      }
+    ],
+    "furtherLinks": []
+  },
+  "mediaList": [
+    {
+      "uniteData": {
+        "expectedLength": "5:42"
+      }
+    }
+  ]
+}

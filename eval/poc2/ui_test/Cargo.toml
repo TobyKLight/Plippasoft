@@ -1,0 +1,10 @@
+[package]
+name = "poc2_ui_test"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ctrlc = { workspace = true }
+gpio-cdev = { workspace = true }
+i2cdev = { workspace = true }
+rs_ws281x = "0.5.1"

@@ -1,0 +1,39 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "noubinKey": "Album.noubin.AAA111",
+  "noubinKeyNormalised": "album.noubin.aaa111",
+  "playableItemTitle": "The Album",
+  "playableItemProfile": "music",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Band"
+        }
+      ]
+    },
+    "coverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "cover.jpg"
+        }
+      ]
+    }
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "One",
+      "localFilePaths": [
+        "01 - One.mp3"
+      ]
+    },
+    {
+      "mediaTitle": "Two",
+      "localFilePaths": [
+        "02 - Two.mp3"
+      ]
+    }
+  ]
+}

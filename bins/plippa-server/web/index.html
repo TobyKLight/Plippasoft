@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Plippa — Media Library</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">Plippa</div>
+    <p class="tagline">Media library portal</p>
+    <button type="button" id="signout-btn" class="hidden">Sign out</button>
+  </header>
+
+  <div id="pin-warning" class="banner hidden" role="alert">
+    No PIN is required: anyone on this network can use this portal. Turn "Web portal PIN required"
+    back on in System &gt; Network on the player.
+  </div>
+  <div id="https-warning" class="banner hidden" role="alert">
+    No HTTPS: this portal is not encrypted, so the Bandcamp password is sent over your network in
+    clear text. Turn "Web portal HTTPS" back on in System &gt; Network on the player.
+  </div>
+  <div id="banner" class="banner hidden" role="status"></div>
+  <section id="signin" class="signin hidden" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+    <form id="signin-form" class="signin-box" autocomplete="off">
+      <h1 id="signin-title">Enter the PIN</h1>
+      <p class="muted">The six digits are on the player: System &gt; Network &gt; Web portal PIN.</p>
+      <input id="signin-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             autocomplete="one-time-code" aria-label="PIN" />
+      <button type="submit" id="signin-go" class="primary">Sign in</button>
+      <p id="signin-msg" class="msg" role="alert"></p>
+    </form>
+  </section>
+  <section id="web-offer" class="web-offer hidden" aria-live="polite">
+    <p><strong>Tag not in your library.</strong> <code id="web-offer-key"></code></p>
+    <p id="web-offer-note" class="muted"></p>
+    <div class="actions">
+      <button type="button" id="web-prepare-btn">Look up online…</button>
+      <button type="button" id="web-dismiss-btn">Dismiss</button>
+    </div>
+    <div id="web-consent" class="web-consent hidden">
+      <p id="web-consent-text"></p>
+      <p><span class="label">Address</span> <code id="web-consent-url"></code></p>
+      <div class="actions">
+        <button type="button" id="web-fetch-btn">Contact server</button>
+        <button type="button" id="web-cancel-btn">Cancel</button>
+      </div>
+    </div>
+    <div id="web-overview" class="web-overview hidden">
+      <div id="web-overview-body"></div>
+      <div class="actions">
+        <button type="button" id="web-unite-btn">Add this release to my library…</button>
+        <button type="button" id="web-overview-close">Close</button>
+      </div>
+    </div>
+  </section>
+  <section id="unite" class="unite hidden" aria-live="polite">
+    <h2 id="unite-title"></h2>
+    <div id="unite-body"></div>
+    <p id="unite-error" class="msg" role="alert"></p>
+    <div id="unite-actions" class="actions"></div>
+  </section>
+  <div id="library-roots" class="muted library-roots hidden" aria-live="polite"></div>
+  <div id="now-playing" class="now-playing" role="status">
+    <span class="label">Now playing</span>
+    <strong id="np-transport">—</strong>
+    <strong id="np-collection" class="np-collection"></strong>
+    <span id="np-entry"></span>
+    <span id="np-cue" class="np-cue"></span>
+    <span id="np-detail" class="muted"></span>
+    <button type="button" id="prev-btn" class="play-pause-btn" disabled title="Restart this entry; press again within 3 s for the previous one" aria-label="Previous">⏮ Prev</button>
+    <button type="button" id="play-pause-btn" class="play-pause-btn" disabled>Play</button>
+    <button type="button" id="next-btn" class="play-pause-btn" disabled title="Next cue or track" aria-label="Next">Next ⏭</button>
+    <button type="button" id="unload-btn" class="play-pause-btn" disabled title="Stop and clear resume bookmarks">Unload</button>
+    <span id="np-ipc" class="muted"></span>
+  </div>
+
+  <main class="layout">
+    <section class="library" aria-labelledby="library-heading">
+      <div class="section-head">
+        <h1 id="library-heading">Library</h1>
+        <div class="actions">
+          <button type="button" id="add-open-btn" class="primary">Add media</button>
+          <button type="button" id="addmulti-open-btn">Add multiple media</button>
+          <button type="button" id="unite-open-btn">Add release from a Noubin URL…</button>
+          <button type="button" id="rescan-btn">Rescan</button>
+        </div>
+      </div>
+      <nav id="lib-nav" class="lib-nav" aria-label="Library"></nav>
+      <div id="lib-view" class="lib-view" aria-live="polite">Loading…</div>
+    </section>
+
+    <section class="detail" aria-labelledby="detail-heading">
+      <h2 id="detail-heading">Detail</h2>
+      <p id="detail-empty" class="muted">Select an item from the library.</p>
+      <div id="detail-panel" class="hidden">
+        <div id="detail-cover" class="detail-cover" aria-label="Cover art"></div>
+        <label>
+          Title
+          <input id="detail-title" type="text" />
+        </label>
+        <label id="detail-artist-row">
+          Artist
+          <input id="detail-artist" type="text" autocomplete="off" />
+        </label>
+        <p id="detail-artist-hint" class="muted" hidden>A loose track (a single file with no artist or album yet). Entering an artist turns it into a release.</p>
+        <p class="meta"><span class="label">Type</span> <code id="detail-type">—</code></p>
+        <p class="meta"><span class="label">Noudata</span> <code id="detail-path"></code></p>
+        <p class="meta"><span class="label">Key</span> <code id="detail-key">—</code></p>
+        <p class="meta"><span class="label">Waveform</span> <code id="detail-waveform">—</code></p>
+        <div class="detail-actions">
+          <button type="button" id="save-btn">Save metadata</button>
+          <button type="button" id="play-btn">Play</button>
+          <button type="button" id="associate-btn">Associate Noubin</button>
+          <button type="button" id="associate-keep-btn">Association Noubin (Keep Existing Key)</button>
+          <button type="button" id="detail-add-playlist" class="hidden" aria-haspopup="menu" aria-expanded="false">Add to playlist…</button>
+          <button type="button" id="detail-append-playlist" class="hidden" aria-haspopup="menu" aria-expanded="false">Append to playlist…</button>
+          <button type="button" id="detail-covers-btn" class="hidden">Edit cover art…</button>
+          <button type="button" id="detail-delete-btn" class="danger" title="Remove this item and its files from the stick">Delete…</button>
+          <button type="button" id="refresh-btn" title="Fetch the latest metadata from the release's Noubin URL (asks first)">Refresh online info…</button>
+        </div>
+        <p id="detail-msg" class="msg" hidden></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- WEB_01: the Stores bar that used to sit here is gone. Bandcamp is a platform inside the
+       library's Distros tab, and its connection controls are built by stores.js at the top of
+       that view (Stores.header). The connect and download dialogs below are unchanged. -->
+
+
+  <!-- NB_11: Add media (one file) -->
+  <dialog id="add-dialog" class="dlg" aria-labelledby="add-title">
+    <h2 id="add-title">Add media</h2>
+    <div id="add-drop" class="dropzone" tabindex="0" role="button" aria-describedby="add-drop-hint">
+      <p id="add-drop-hint" class="dz-text">Drop an audio file here (and cover images, if you have them)</p>
+      <p class="muted dz-or">or</p>
+      <button type="button" id="add-pick-btn">Open file picker</button>
+      <input id="add-file" type="file" accept="audio/*,.mp3,.flac,.wav,.ogg,.opus,.m4a,.m4b,.jpg,.jpeg,.png,.webp" hidden />
+    </div>
+    <p id="add-file-line" class="file-line hidden"></p>
+    <fieldset class="kinds">
+      <legend>This is a</legend>
+      <label><input type="radio" name="add-kind" value="music" checked /> Music</label>
+      <label><input type="radio" name="add-kind" value="mix" /> Mix</label>
+      <label><input type="radio" name="add-kind" value="audiobook" /> Audiobook</label>
+      <label><input type="radio" name="add-kind" value="podcast" /> Podcast</label>
+      <label><input type="radio" name="add-kind" value="other" /> Other</label>
+    </fieldset>
+    <div id="add-cues" class="hidden">
+      <label for="add-cue-text">Paste tracklist / chapters</label>
+      <p class="muted hint">One timestamp per line, followed by a title, for example <code>0:00 Intro</code>, <code>12:30 Second track</code>, <code>1:02:15 Finale</code>. Lines without a timestamp are ignored. Leave empty for no timestamps.</p>
+      <textarea id="add-cue-text" rows="6" spellcheck="false" autocomplete="off"></textarea>
+      <div id="add-preview" class="cue-preview" aria-live="polite"></div>
+    </div>
+    <!-- ART_07: cover art section -->
+    <div id="add-art" class="art-section hidden">
+      <h3 class="art-title">Cover art</h3>
+      <div id="add-art-notes" aria-live="polite"></div>
+      <ol id="add-art-list" class="art-grid" aria-label="Cover art, the first is the primary image"></ol>
+    </div>
+    <p id="add-hint" class="muted hint hidden" role="status">Add at least one audio file. To add cover art to an existing release use ⋮ › Edit cover art.</p>
+    <div id="add-progress-box" class="hidden">
+      <progress id="add-progress" max="100" value="0" aria-label="Upload progress"></progress>
+      <span id="add-progress-text" class="muted"></span>
+    </div>
+    <p id="add-error" class="msg dlg-error" role="alert"></p>
+    <div class="dlg-actions">
+      <button type="button" id="add-cancel">Cancel</button>
+      <button type="button" id="add-ok" class="primary" disabled>OK</button>
+    </div>
+  </dialog>
+
+  <!-- NB_16: Edit timestamps (cues of an existing item) -->
+  <dialog id="cues-dialog" class="dlg wide" aria-labelledby="cues-title">
+    <h2 id="cues-title">Edit timestamps</h2>
+    <p id="cues-subject" class="muted"></p>
+    <p id="cues-loaded-note" class="note hidden" role="status"></p>
+    <label for="cues-text">Timestamps</label>
+    <p class="muted hint">One timestamp per line, followed by a title, for example <code>0:00 Intro</code>, <code>12:30 Second track</code>, <code>1:02:15 Finale</code>. Lines without a timestamp are ignored. Saving replaces the current timestamps; an empty box removes them.</p>
+    <textarea id="cues-text" rows="10" spellcheck="false" autocomplete="off" disabled></textarea>
+    <div id="cues-preview" class="cue-preview" aria-live="polite"></div>
+    <p id="cues-other" class="muted hint"></p>
+    <p id="cues-error" class="msg dlg-error" role="alert"></p>
+    <div class="dlg-actions">
+      <button type="button" id="cues-reload" class="hidden">Reload current version</button>
+      <button type="button" id="cues-cancel">Cancel</button>
+      <button type="button" id="cues-save" class="primary" disabled>Save</button>
+    </div>
+  </dialog>
+
+  <!-- NB_16: create metadata (.noudata) for a media file that has none -->
+  <dialog id="meta-dialog" class="dlg" aria-labelledby="meta-title">
+    <h2 id="meta-title">Create metadata</h2>
+    <p id="meta-subject" class="muted"></p>
+    <p class="muted hint">This file has no metadata (<code>.noudata</code>) yet, so it cannot have timestamps or a proper title. Creating it writes a small file next to the audio; the audio itself is not changed.</p>
+    <fieldset class="kinds">
+      <legend>This is a</legend>
+      <label><input type="radio" name="meta-kind" value="music" checked /> Music</label>
+      <label><input type="radio" name="meta-kind" value="mix" /> Mix</label>
+      <label><input type="radio" name="meta-kind" value="audiobook" /> Audiobook</label>
+      <label><input type="radio" name="meta-kind" value="podcast" /> Podcast</label>
+      <label><input type="radio" name="meta-kind" value="other" /> Other</label>
+    </fieldset>
+    <label for="meta-title-input">Title (optional)</label>
+    <p class="muted hint">Leave empty to use the tags or the file name.</p>
+    <input id="meta-title-input" type="text" maxlength="256" autocomplete="off" />
+    <p id="meta-error" class="msg dlg-error" role="alert"></p>
+    <div class="dlg-actions">
+      <button type="button" id="meta-cancel">Cancel</button>
+      <button type="button" id="meta-ok" class="primary">Create</button>
+    </div>
+  </dialog>
+
+  <!-- NB_11: Add multiple media (album or playlist) -->
+  <dialog id="addmulti-dialog" class="dlg wide" aria-labelledby="addmulti-title">
+    <h2 id="addmulti-title">Add multiple media</h2>
+    <p class="muted hint">For music tracks. Audiobooks, podcasts and mixes go through <em>Add media</em> (one file at a time, with chapters).</p>
+    <div id="addmulti-drop" class="dropzone" tabindex="0" role="button" aria-describedby="addmulti-drop-hint">
+      <p id="addmulti-drop-hint" class="dz-text">Drop audio files here (and cover images, if you have them)</p>
+      <p class="muted dz-or">or</p>
+      <button type="button" id="addmulti-pick-btn">Open file picker</button>
+      <input id="addmulti-file" type="file" accept="audio/*,.mp3,.flac,.wav,.ogg,.opus,.m4a,.jpg,.jpeg,.png,.webp" multiple hidden />
+    </div>
+    <fieldset class="kinds">
+      <legend>Import as</legend>
+      <label><input type="radio" name="addmulti-mode" value="album" checked /> Album</label>
+      <label><input type="radio" name="addmulti-mode" value="playlist" /> Playlist</label>
+    </fieldset>
+    <label for="addmulti-name">Collection name</label>
+    <input id="addmulti-name" type="text" maxlength="256" autocomplete="off" required />
+    <p id="addmulti-mode-hint" class="muted hint"></p>
+    <p id="addmulti-skipped" class="muted hint" aria-live="polite"></p>
+    <p id="addmulti-unplayable" class="hint multi-unplayable" aria-live="polite"></p>
+    <div class="multi-list-head">
+      <span class="muted">Files</span>
+      <button type="button" id="addmulti-sort-btn" disabled>Sort by name</button>
+    </div>
+    <ol id="addmulti-list" class="multi-list" aria-label="Files to import, in track order"></ol>
+    <!-- ART_07: cover art section -->
+    <div id="addmulti-art" class="art-section hidden">
+      <h3 class="art-title">Cover art</h3>
+      <div id="addmulti-art-notes" aria-live="polite"></div>
+      <ol id="addmulti-art-list" class="art-grid" aria-label="Cover art, the first is the primary image"></ol>
+    </div>
+    <p id="addmulti-hint" class="muted hint hidden" role="status">Add at least one audio file. To add cover art to an existing release use ⋮ › Edit cover art.</p>
+    <div id="addmulti-progress-box" class="hidden">
+      <progress id="addmulti-progress" max="100" value="0" aria-label="Overall progress"></progress>
+      <span id="addmulti-progress-text" class="muted"></span>
+    </div>
+    <p id="addmulti-error" class="msg dlg-error" role="alert"></p>
+    <div class="dlg-actions">
+      <button type="button" id="addmulti-cancel">Cancel</button>
+      <button type="button" id="addmulti-skipfailed" class="hidden">Continue without failed files</button>
+      <button type="button" id="addmulti-ok" class="primary" disabled>OK</button>
+    </div>
+  </dialog>
+
+  <!-- ART_06: Edit cover art (own block; script editcovers.js) -->
+  <dialog id="covers-dialog" class="dlg wide" aria-labelledby="covers-title">
+    <h2 id="covers-title">Cover art</h2>
+    <p id="covers-loading" class="muted hidden" role="status">Loading…</p>
+    <ul id="covers-grid" class="covers-grid" aria-label="Cover art, in order. The first image is the primary one."></ul>
+    <p id="covers-empty" class="muted hint hidden">No cover art yet. Add images below.</p>
+    <div id="covers-drop" class="dropzone">
+      <p class="dz-text">Drop images here</p>
+      <p class="muted dz-or">or</p>
+      <button type="button" id="covers-pick-btn">Add images…</button>
+      <input id="covers-file" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
+    </div>
+    <p class="muted hint">Images are shown cropped to a square; your files are not changed. JPEG, PNG or WebP, up to 16 MB each, at most 12. Drag a tile or use the arrow buttons to change the order; the first image is the primary one. Nothing is saved until you press Save.</p>
+    <p id="covers-limit" class="muted hint hidden">The limit of 12 images is reached.</p>
+    <p id="covers-note" class="note hidden" role="status"></p>
+    <p id="covers-unshown" class="muted hint hidden"></p>
+    <p id="covers-error" class="msg dlg-error" role="alert"></p>
+    <div class="dlg-actions">
+      <button type="button" id="covers-cancel">Cancel</button>
+      <button type="button" id="covers-save" class="primary" disabled>Save</button>
+    </div>
+  </dialog>
+  <!-- end ART_06 -->
+
+  <!-- BCS_10: delete an item (or one media file): preview first, then confirm -->
+  <dialog id="delete-dialog" class="dlg wide" aria-labelledby="delete-title">
+    <h2 id="delete-title">Delete</h2>
+    <p id="delete-subject" class="muted"></p>
+    <p id="delete-loading" class="muted" role="status">Checking what would be deleted…</p>
+    <div id="delete-body" class="hidden">
+      <p id="delete-summary" class="delete-summary"></p>
+      <ul id="delete-blockers" class="preview-warn" role="alert"></ul>
+      <details id="delete-files-wrap">
+        <summary id="delete-files-sum">Files</summary>
+        <ul id="delete-files" class="delete-files"></ul>
+      </details>
+      <div id="delete-lists"></div>
+      <div id="delete-warnings-box">
+        <ul id="delete-warnings" class="preview-warn"></ul>
+      </div>
+    </div>
+    <p id="delete-error" class="msg dlg-error" role="alert"></p>
+    <div class="dlg-actions">
+      <button type="button" id="delete-cancel">Cancel</button>
+      <button type="button" id="delete-ok" class="danger" disabled>Delete</button>
+    </div>
+  </dialog>
+  <!-- end BCS_10 -->
+
+  <!-- BCS_04: Bandcamp download consent, progress and result -->
+  <dialog id="store-dl-dialog" class="dlg wide" aria-labelledby="store-dl-title">
+    <h2 id="store-dl-title">Download from Bandcamp</h2>
+    <div id="store-dl-body"></div>
+    <p id="store-dl-error" class="msg dlg-error" role="alert"></p>
+    <div class="dlg-actions">
+      <button type="button" id="store-dl-cancel">Cancel</button>
+      <button type="button" id="store-dl-ok" class="primary" disabled>Download</button>
+    </div>
+  </dialog>
+  <!-- end BCS_04 -->
+
+  <!-- BCS_03: connect (or reconnect) Bandcamp -->
+  <dialog id="store-dialog" class="dlg" aria-labelledby="store-dialog-title">
+    <h2 id="store-dialog-title">Connect Bandcamp</h2>
+    <p class="muted hint">
+      Bandcamp's Subsonic beta uses a <strong>separate</strong> username and password, not your
+      Bandcamp login. Generate them in
+      <a href="https://bandcamp.com/settings?pane=fan" target="_blank" rel="noopener noreferrer nofollow">Bandcamp fan settings</a>
+      (Subsonic section) and copy both values here.
+    </p>
+    <label for="store-user">Username</label>
+    <input id="store-user" type="text" autocomplete="off" spellcheck="false" maxlength="256" />
+    <label for="store-password">Password</label>
+    <input id="store-password" type="password" autocomplete="off" maxlength="256" />
+    <label class="check"><input id="store-consent" type="checkbox" /> Store these values on this Plippa and refresh my collection automatically at start-up (at most once a day, never while playing)</label>
+    <p class="muted hint">The values are stored on this Plippa with file permissions only the service can read, and are never shown again. Disconnect removes them.</p>
+    <p id="store-dialog-error" class="msg dlg-error" role="alert"></p>
+    <div class="dlg-actions">
+      <button type="button" id="store-cancel">Cancel</button>
+      <button type="button" id="store-ok" class="primary" disabled>Connect</button>
+    </div>
+  </dialog>
+  <!-- end BCS_03 -->
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script src="/signin.js"></script>
+  <script src="/ui.js"></script>
+  <script src="/app.js"></script>
+  <script src="/covers.js"></script>
+  <script src="/deleteitem.js"></script>
+  <script src="/library.js"></script>
+  <script src="/unite.js"></script>
+  <script src="/addmedia.js"></script>
+  <script src="/editcues.js"></script>
+  <script src="/editcovers.js"></script>
+  <script src="/stores.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "noudataVersion": "0.4.0",
+  "playableItemTitle": "Minimal Track",
+  "mediaList": [
+    {
+      "localFilePaths": [
+        "track.mp3"
+      ],
+      "mediaTitle": "Minimal Track"
+    }
+  ]
+}

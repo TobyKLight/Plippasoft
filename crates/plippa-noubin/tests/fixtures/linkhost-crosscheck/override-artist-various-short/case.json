@@ -1,0 +1,25 @@
+{
+  "id": "override-artist-various-short",
+  "description": "primaryArtistOverrideName with several primaryArtists, short URL (no artist segment in the URL).",
+  "noudataVersion": "0.4.0",
+  "publishedUrlShape": "short",
+  "publicUrl": "https://noub.in/VAR0010A/",
+  "longUrl": "https://noubin.com/n/ada-bob/various-voices/VAR0010A/",
+  "shortUrl": "https://noub.in/VAR0010A/",
+  "metadataUrl": "https://noub.in/VAR0010A/web.noudata",
+  "code": "VAR0010A",
+  "pathArtistSlug": "ada-bob",
+  "releaseSlug": "various-voices",
+  "noudataRevision": 1,
+  "publishedFiles": [
+    "cover.webp",
+    "index.html",
+    "thumbnails/cover-1024.jpg",
+    "thumbnails/cover-1024.webp",
+    "thumbnails/cover-128.jpg",
+    "thumbnails/cover-128.webp",
+    "thumbnails/cover-512.jpg",
+    "thumbnails/cover-512.webp",
+    "web.noudata"
+  ]
+}

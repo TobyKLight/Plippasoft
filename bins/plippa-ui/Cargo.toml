@@ -1,0 +1,56 @@
+[package]
+name = "plippa-ui"
+version.workspace = true
+edition.workspace = true
+description = "Plippa local UI process — display, inputs, NFC tap handoff"
+publish = false
+
+[lib]
+name = "plippa_ui"
+path = "src/lib.rs"
+
+[[bin]]
+name = "plippa-ui"
+path = "src/main.rs"
+
+[features]
+default = []
+# Real ILI9341 / AW9523 / encoder / PN532 backends for plippa-D-poc2.
+# Compiles without hardware present; open() fails at runtime if devices missing.
+poc2 = [
+    "plippa-hw/pn532",
+    "dep:gpio-cdev",
+    "dep:i2cdev",
+    "dep:linux-embedded-hal",
+    "dep:mipidsi",
+    "dep:nix",
+]
+# Real 2.4 GHz accessory backend on the device (zbus through plippa-hw).
+accessory-2g4 = ["plippa-hw/accessory-2g4"]
+
+[dependencies]
+plippa-board = { workspace = true }
+plippa-core = { workspace = true }
+plippa-hw = { workspace = true }
+plippa-image = { workspace = true }
+plippa-leds = { workspace = true }
+plippa-ipc-proto = { workspace = true }
+plippa-noubin = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+    ctrlc = { workspace = true }
+    libc = { workspace = true }
+    embedded-graphics = { workspace = true }
+gpio-cdev = { workspace = true, optional = true }
+i2cdev = { workspace = true, optional = true }
+linux-embedded-hal = { workspace = true, optional = true, features = ["gpio_cdev", "spi"] }
+mipidsi = { workspace = true, optional = true }
+nix = { workspace = true, optional = true, features = ["poll"] }
+
+[dev-dependencies]
+plippa-audio = { workspace = true }
+plippa-engine = { path = "../plippa-engine" }
+plippa-server = { path = "../plippa-server" }
+tempfile = "3"
+lofty = "0.22"

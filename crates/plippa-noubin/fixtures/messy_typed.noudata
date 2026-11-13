@@ -1,0 +1,152 @@
+{
+  "noudataVersion": "0.4.0",
+  "playableItemTitle": "Messy",
+  "playableItemProfile": "hologram",
+  "playableItemSafeTitle": "Messy Legacy",
+  "futureRoot": [
+    1,
+    2,
+    {
+      "a": null
+    }
+  ],
+  "releaseData": {
+    "futureReleaseThing": {
+      "deep": true
+    },
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Good"
+        },
+        {
+          "nope": 1
+        },
+        "not an object"
+      ],
+      "contributors": [
+        {
+          "contributorRole": "x"
+        }
+      ],
+      "futureCredit": "keep me"
+    },
+    "coverImage": {
+      "images": [{ "altText": "no location" }]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "NoUrl"
+      },
+      {
+        "platformName": "Shop",
+        "platformType": "teleporter",
+        "platformURL": "https://example.com/s"
+      }
+    ],
+    "furtherLinks": [
+      {
+        "linkTitle": "no url"
+      }
+    ]
+  },
+  "localPlaybackData": {
+    "resumeAtItem": 0,
+    "shuffle": "yes",
+    "futureFlag": true
+  },
+  "mediaList": [
+    "not an object",
+    {
+      "localFilePaths": [
+        "a.mp3"
+      ],
+      "unknownItemField": 123,
+      "musicalData": {
+        "BPM": 120.5,
+        "musicalKey": "F#m"
+      },
+      "uniteData": {
+        "futureOnly": 1
+      },
+      "itemLocalPlaybackData": {
+        "startFrom": "-5",
+        "overrideResumeBehaviour": "sometimes",
+        "futureItemFlag": 1
+      },
+      "cueLists": [
+        {
+          "cueListType": "hologramCues",
+          "cues": [
+            {
+              "startTime": "0:10",
+              "endTime": "0:20",
+              "cueTextSpans": [
+                {
+                  "text": "good one"
+                }
+              ]
+            },
+            {
+              "startTime": "0:15",
+              "cueTextSpans": [
+                {
+                  "text": "overlaps previous end"
+                }
+              ]
+            },
+            {
+              "startTime": "0:30",
+              "endTime": "0:25",
+              "cueTextSpans": [
+                {
+                  "text": "start after end"
+                }
+              ]
+            },
+            {
+              "startTime": "0:40"
+            },
+            {
+              "startTime": "0:50",
+              "cueTextSpans": [
+                {
+                  "text": "second good"
+                }
+              ],
+              "futureCueField": "x"
+            },
+            {
+              "cueTextSpans": [
+                {
+                  "text": "no start"
+                }
+              ]
+            },
+            {
+              "startTime": "banana",
+              "cueTextSpans": [
+                {
+                  "text": "bad start"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cueListType": "nav",
+          "cues": []
+        },
+        {
+          "cueListType": "text",
+          "cues": [
+            {
+              "startTime": "1",
+              "cueTextSpans": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+[package]
+name = "poc2_screen_test_ILI9341_240x320"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ctrlc = { workspace = true }
+embedded-graphics = { workspace = true }
+gpio-cdev = { workspace = true }
+linux-embedded-hal = { workspace = true, features = ["gpio_cdev", "spi"] }
+mipidsi = { workspace = true }

@@ -1,0 +1,25 @@
+{
+  "id": "audiobook-long",
+  "description": "Audiobook with chapters as tracks, author as primary artist, narrator contributor.",
+  "noudataVersion": "0.4.0",
+  "publishedUrlShape": "long",
+  "publicUrl": "https://noubin.com/n/mary-shelley-jones/the-clockmaker-s-daughter/BOOK0004/",
+  "longUrl": "https://noubin.com/n/mary-shelley-jones/the-clockmaker-s-daughter/BOOK0004/",
+  "shortUrl": "https://noub.in/BOOK0004/",
+  "metadataUrl": "https://noubin.com/n/mary-shelley-jones/the-clockmaker-s-daughter/BOOK0004/web.noudata",
+  "code": "BOOK0004",
+  "pathArtistSlug": "mary-shelley-jones",
+  "releaseSlug": "the-clockmaker-s-daughter",
+  "noudataRevision": 1,
+  "publishedFiles": [
+    "cover.webp",
+    "index.html",
+    "thumbnails/cover-1024.jpg",
+    "thumbnails/cover-1024.webp",
+    "thumbnails/cover-128.jpg",
+    "thumbnails/cover-128.webp",
+    "thumbnails/cover-512.jpg",
+    "thumbnails/cover-512.webp",
+    "web.noudata"
+  ]
+}

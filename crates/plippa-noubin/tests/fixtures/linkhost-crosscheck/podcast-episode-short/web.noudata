@@ -1,0 +1,35 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Episode 42: Why Tape Is Not Dead",
+  "playableItemFolderSafeTitle": "Episode 42 Why Tape Is Not Dead",
+  "playableItemProfile": "podcast",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Tape Talk"
+        }
+      ],
+      "description": "We discuss cassettes.\n\nGuests: nobody.",
+      "releaseDate": "2026-05-05"
+    },
+    "releasePlatforms": [],
+    "furtherLinks": [
+      {
+        "linkTitle": "Show notes",
+        "linkURL": "https://tapetalk.example/42"
+      }
+    ]
+  },
+  "mediaList": [
+    {
+      "uniteData": {
+        "expectedFilename": "tape-talk-042",
+        "expectedLength": "58:07",
+        "freeDownloadURL": "https://tapetalk.example/42.mp3"
+      }
+    }
+  ]
+}

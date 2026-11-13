@@ -1,0 +1,15 @@
+[package]
+name = "poc2_audio_test_warp_mouse"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+ctrlc = { workspace = true }
+evdev = { workspace = true }
+libpulse-binding = { workspace = true }
+libpulse-simple-binding = { workspace = true }
+nix = { workspace = true }
+rubato = { workspace = true }
+signalsmith-stretch = { workspace = true }
+symphonia = { workspace = true }

@@ -1,0 +1,17 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "linkTrack",
+  "noubinKey": "Beat For Machines To Study.noubin.gfms02",
+  "noubinKeyNormalised": "beat for machines to study.noubin.gfms02",
+  "playableItemTitle": "Beat For Machines To Study",
+  "referToReleaseNoudata": "_Grooves For Machines To Study.noudata",
+  "mediaList": [
+    {
+      "mediaTitle": "Beat For Machines To Study",
+      "localFilePaths": [
+        "MP3 V0/Bogan Mongrel - Grooves For Machines To Study - 02 Beat For Machines To Study.mp3",
+        "FLAC/Bogan Mongrel - Grooves For Machines To Study - 02 Beat For Machines To Study.flac"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Japanese Rocksteady Set Vol. 3",
+  "playableItemProfile": "mix",
+  "playableItemFolderSafeTitle": "Japanese Rocksteady Set Vol 3",
+  "playableItemURLSafeTitle": "japanese-rocksteady-vol-3",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Japanese Rude Sounds"
+        }
+      ],
+      "primaryArtistOverrideName": "Japanese Rude Sounds b2b Friends",
+      "contributors": [
+        {
+          "contributorRole": "mastering",
+          "contributorName": "Sam",
+          "contributorURL": "https://example.com/sam"
+        }
+      ]
+    },
+    "coverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "cover.jpg",
+          "altText": "A record",
+          "isImageOfNoubin": false
+        }
+      ]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "Mixcloud",
+        "platformType": "streaming",
+        "platformURL": "https://example.com/mix"
+      },
+      {
+        "platformName": "Zine",
+        "platformType": "other",
+        "platformURL": "https://example.com/zine",
+        "customVerb": "read about"
+      }
+    ],
+    "furtherLinks": [
+      {
+        "linkTitle": "Tracklist",
+        "linkURL": "https://example.com/tracklist"
+      }
+    ],
+    "legalNotice": "Line one\r\nLine two"
+  },
+  "mediaList": [
+    {
+      "localFilePaths": [
+        "mix.flac",
+        "mix.mp3"
+      ],
+      "uniteData": {
+        "expectedFilename": "mix",
+        "expectedLength": "1:02:03.125"
+      },
+      "cueLists": [
+        {
+          "cueListType": "nav",
+          "cueListTitle": "Chapters",
+          "cues": [
+            {
+              "startTime": "0",
+              "endTime": "10:00",
+              "cueTextSpans": [
+                {
+                  "text": "Warm up"
+                }
+              ]
+            },
+            {
+              "startTime": "10:00",
+              "cueTextSpans": [
+                {
+                  "text": "Peak "
+                },
+                {
+                  "text": "time"
+                }
+              ]
+            },
+            {
+              "startTime": "0:45:00",
+              "cueTextSpans": [
+                {
+                  "text": "Cool down"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cueListType": "credits",
+          "cueListLanguage": "en",
+          "cues": [
+            {
+              "startTime": "0",
+              "cueTextSpans": [
+                {
+                  "text": "Wicked Babylon - Clippers"
+                }
+              ],
+              "cueURL": "https://example.com/babylon"
+            },
+            {
+              "startTime": "6:33",
+              "cueTextSpans": [
+                {
+                  "text": "Rude Boy - Skatalites"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cueListType": "text",
+          "cueListNavigable": true,
+          "cues": [
+            {
+              "startTime": "5",
+              "cueTextSpans": [
+                {
+                  "text": "hello\r\nworld"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

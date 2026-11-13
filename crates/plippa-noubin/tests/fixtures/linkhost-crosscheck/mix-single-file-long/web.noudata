@@ -1,0 +1,41 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Midnight Drive Mix",
+  "playableItemProfile": "mix",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "DJ Nightshift"
+        }
+      ],
+      "description": "Two hours of night-driving music."
+    },
+    "coverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "cover.webp",
+          "imageWebURL": "https://noubin.com/n/dj-nightshift/midnight-drive-mix/MIX00006/cover.webp?v=1"
+        }
+      ]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "Mixcloud",
+        "platformType": "streaming",
+        "platformURL": "https://mixcloud.example/midnight-drive"
+      }
+    ],
+    "furtherLinks": []
+  },
+  "mediaList": [
+    {
+      "uniteData": {
+        "expectedFilename": "Midnight Drive Mix",
+        "expectedLength": "2:00:00"
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "BandcampServer",
+    "serverVersion": "1.0",
+    "openSubsonic": true,
+    "artists": {
+      "ignoredArticles": "The El La Los Las Le Les",
+      "index": [
+        {
+          "name": "A",
+          "artist": [
+            {
+              "id": "b:4000000002",
+              "name": "Another Fixture",
+              "albumCount": 2,
+              "coverArt": "ca:3000000003"
+            }
+          ]
+        },
+        {
+          "name": "F",
+          "artist": [
+            {
+              "id": "b:4000000001",
+              "name": "Fixture Artist",
+              "albumCount": 2,
+              "coverArt": "ca:3000000001"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

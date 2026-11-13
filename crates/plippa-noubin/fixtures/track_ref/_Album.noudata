@@ -1,0 +1,29 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Album",
+  "playableItemProfile": "music",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Band"
+        }
+      ]
+    }
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "One",
+      "localFilePaths": [
+        "01 - One.mp3"
+      ]
+    },
+    {
+      "mediaTitle": "Two",
+      "localFilePaths": [
+        "02 - Two.mp3"
+      ]
+    }
+  ]
+}

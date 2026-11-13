@@ -1,0 +1,10 @@
+[package]
+name = "poc2_mouse_test"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+ctrlc = { workspace = true }
+evdev = { workspace = true }
+nix = { workspace = true }

@@ -1,0 +1,231 @@
+# plippa-D-poc2 board profile — sourced from wiring CSV (20.07.26)
+# in this folder (POC2 Circuits Parts - WIRING - Actual 20.07.26.csv)
+
+[board]
+id = "plippa-D-poc2"
+model = "D"
+
+[capabilities]
+nfc_write = true
+media_library_management = true
+local_display = true
+hdmi_output = false
+microphone = false
+# Sync/reset jacks are wired on POC2; MVP software may not use them yet.
+sync_reset_io = true
+max_sample_rate_hz = 48000
+max_bit_depth = 16
+
+[capabilities.audio_formats]
+mp3 = true
+wav = true
+flac = true
+aac = false
+opus = false
+
+[display]
+driver = "ili9341"
+# Native GRAM size; logical UI size is 320×240 after rotation.
+width = 240
+height = 320
+# Landscape on the Model D tilted front panel.
+rotation = 90
+# Set true if glyphs still read backwards after rotation.
+mirrored = true
+spi_dev = "/dev/spidev0.0"
+# Panel colour-component order: "rgb" or "bgr". Wrong value swaps red and blue on the glass.
+# This panel is a BGR module (verified 2026-11-04: the blue ACCENT drew orange, the red ERR
+# banner drew blue). Flip to "rgb" if a future batch ever shows red/blue exchanged the other way.
+color_order = "bgr"
+dc_gpio = 24
+rst_gpio = 25
+bl_gpio = 16
+
+[nfc]
+backend = "pn532_i2c"
+i2c_bus = 1
+address = 0x24
+# Empty-field InListPassiveTarget ceiling (ms). Tag present often returns sooner.
+# Keep short so AW9523 on the same i2c-1 stays responsive between polls.
+# On miss: service samples expander, then WUPA+InList in a second slice (same PollTick).
+inlist_timeout_ms = 40
+# Field checks per second while idle (Noubin ≥5 Hz → poll_hz ≥ 5).
+poll_hz = 5
+
+[roles]
+# Source of truth for purposes: POC2 Circuits Parts - SWPATCH.csv
+volume_encoder = "SWE1"
+menu_encoder = "SWE5"
+back_button = "SW6"
+power_button = "SWE1_SW"
+play_stop_button = "BT_SW3"
+# Assignable Encoder A (SWE3). Encoder B (SWE4) intentionally omitted.
+assignable_encoder_a = "SWE3"
+# Base-top transport row (SWPATCH: BT_SW1 prev, SW2 rewind, SW3 play, SW4 FF, SW5 next, SW6 record).
+prev_track_button = "BT_SW1"
+rewind_button = "BT_SW2"
+fast_forward_button = "BT_SW4"
+next_track_button = "BT_SW5"
+record_button = "BT_SW6"
+# Front SW2 = Play Mode.
+play_mode_button = "SW2"
+
+[encoders.SWE1]
+a_gpio = 17
+b_gpio = 7
+push = "SWE1_SW"
+
+[encoders.SWE3]
+a_gpio = 14
+b_gpio = 5
+push = "SWE3_SW"
+
+[encoders.SWE4]
+a_gpio = 6
+b_gpio = 27
+push = "SWE4_SW"
+
+[encoders.SWE5]
+a_gpio = 9
+b_gpio = 26
+push = "SWE5_SW"
+
+[buttons.SW2]
+expander = "AW9523_PA6"
+
+[buttons.SW6]
+expander = "AW9523_PA7"
+
+[buttons.SW7]
+expander = "AW9523_PB0"
+
+[buttons.SWE1_SW]
+expander = "AW9523_PB1"
+
+[buttons.SWE3_SW]
+expander = "AW9523_PB2"
+
+[buttons.SWE4_SW]
+expander = "AW9523_PB3"
+
+[buttons.SWE5_SW]
+expander = "AW9523_PB4"
+
+[buttons.BT_SW1]
+expander = "AW9523_PA0"
+
+[buttons.BT_SW2]
+expander = "AW9523_PA1"
+
+[buttons.BT_SW3]
+expander = "AW9523_PA2"
+
+[buttons.BT_SW4]
+expander = "AW9523_PA3"
+
+[buttons.BT_SW5]
+expander = "AW9523_PA4"
+
+[buttons.BT_SW6]
+expander = "AW9523_PA5"
+
+# WS2811 data lines (LEDPATCH.csv). `gpio`/`channel` = rs_ws281x wiring.
+[led_streams.F_LED_DATA]
+gpio = 13
+channel = 1
+count = 33
+
+[led_streams.BT_LED_DATA]
+gpio = 12
+channel = 0
+count = 30
+
+# LED roles -> stream span (LEDPATCH.csv stays the human source of truth).
+[leds.menu_back_button]      # F_LED_SW6
+stream = "F_LED_DATA"
+start = 0
+
+[leds.vu_left]               # F_LED_VUL_1..10
+stream = "F_LED_DATA"
+start = 1
+count = 10
+
+[leds.vu_right]              # F_LED_VUR_1..10
+stream = "F_LED_DATA"
+start = 11
+count = 10
+
+[leds.power_led]             # F_LED_PWR1
+stream = "F_LED_DATA"
+start = 21
+
+[leds.play_mode_button]      # F_LED_SW2
+stream = "F_LED_DATA"
+start = 22
+
+[leds.assignable_b_meter]    # F_LED_SWE4_1..5
+stream = "F_LED_DATA"
+start = 23
+count = 5
+
+[leds.assignable_a_meter]    # F_LED_SWE3_1..5
+stream = "F_LED_DATA"
+start = 28
+count = 5
+
+[leds.nfc_ring]              # BT_LED_NFC1..24 (ring order as wired)
+stream = "BT_LED_DATA"
+start = 0
+count = 24
+
+[leds.prev_track_button]     # BT_LED_SW1
+stream = "BT_LED_DATA"
+start = 24
+
+[leds.rewind_button]         # BT_LED_SW2
+stream = "BT_LED_DATA"
+start = 25
+
+[leds.play_button]           # BT_LED_SW3
+stream = "BT_LED_DATA"
+start = 26
+
+[leds.fast_forward_button]   # BT_LED_SW4
+stream = "BT_LED_DATA"
+start = 27
+
+[leds.next_track_button]     # BT_LED_SW5
+stream = "BT_LED_DATA"
+start = 28
+
+[leds.record_button]         # BT_LED_SW6
+stream = "BT_LED_DATA"
+start = 29
+
+[inputs]
+# Applies to all switches (AW9523 expander today; direct RPi GPIO on future boards).
+# Edge + cooldown (ms): fires on first pressed/released sample; further edges on
+# the same switch are ignored until this elapses.
+debounce_ms = 5
+
+[expander]
+driver = "aw9523"
+i2c_bus = 1
+address = 0x58
+rst_gpio = 22
+# Active-low INTN → Pi GPIO. Service enables pin IRQs and wakes on falling edge.
+int_gpio = 23
+
+[audio]
+dac = "pcm5102"
+# Built-in PCM5102 I2S DAC as PipeWire reports it (AUDIO_OPS_01).
+local_sink = "alsa_output.platform-soc_sound.stereo-fallback"
+# The match string survives a card-profile suffix change (`platform-soc_sound` stays).
+local_sink_match = "platform-soc_sound"
+bck_gpio = 18
+lrck_gpio = 19
+data_gpio = 21
+
+[fan]
+controller = "emc2301"
+notes = "CM4 IO Board J17; i2c-fan / EMC2301 (see boardSetup.md + wiring CSV)"

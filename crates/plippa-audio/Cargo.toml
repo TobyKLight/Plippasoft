@@ -1,0 +1,39 @@
+[package]
+name = "plippa-audio"
+version.workspace = true
+edition.workspace = true
+description = "Symphonia decode, quality selection, SFX mix, and audio sinks"
+license = "Apache-2.0"
+publish = false
+
+[features]
+default = []
+# Pitch-correct voice backed by Signalsmith Stretch (vendored C++, needs g++); off = in-tree WSOLA.
+stretch = ["dep:signalsmith-stretch"]
+# DSP test toolkit (`testsupport` module, WARP_03): generators, analysis helpers, RenderVoice.
+testsupport = ["dep:realfft"]
+# PulseAudio / PipeWire-Pulse output (desktop + plippa-D-poc2 RCA path).
+pulse = ["dep:libpulse-binding", "dep:libpulse-simple-binding"]
+
+[[bin]]
+name = "plippa-media-helper"
+path = "src/bin/plippa-media-helper.rs"
+
+[dependencies]
+plippa-core = { workspace = true }
+postcard = { workspace = true }
+serde = { workspace = true }
+# Duration probe of the isolated helper only (the same lofty version the server used in-process).
+lofty = "0.22"
+rubato = { workspace = true }
+symphonia = { workspace = true }
+realfft = { workspace = true, optional = true }
+signalsmith-stretch = { workspace = true, optional = true }
+thiserror = { workspace = true }
+libc = { workspace = true }
+libpulse-binding = { workspace = true, optional = true }
+libpulse-simple-binding = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile = "3"
+realfft = { workspace = true }

@@ -1,0 +1,13 @@
+[package]
+name = "poc2_nfc2audio_test_PN532_PCM5102"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ctrlc = { workspace = true }
+embedded-hal = { workspace = true }
+i2cdev = { workspace = true }
+libc = { workspace = true }
+linux-embedded-hal = { workspace = true, features = ["i2c"] }
+pn532 = { workspace = true }
+rand = { workspace = true }

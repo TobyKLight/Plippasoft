@@ -1,0 +1,33 @@
+[package]
+name = "plippa-hw"
+version.workspace = true
+edition.workspace = true
+description = "Hardware driver traits and backends: NFC, GPIO, display (MVP: NFC)"
+license = "Apache-2.0"
+publish = false
+
+[features]
+default = []
+# Real PN532 over I2C (plippa-D-poc2). Desktop/CI builds without this feature.
+pn532 = [
+    "dep:embedded-hal",
+    "dep:i2cdev",
+    "dep:libc",
+    "dep:linux-embedded-hal",
+    "dep:pn532",
+]
+# Real 2.4 GHz accessory backend over the system D-Bus (plippa-D devices).
+accessory-2g4 = ["dep:zbus"]
+
+[dependencies]
+plippa-noubin = { workspace = true }
+thiserror = { workspace = true }
+embedded-hal = { workspace = true, optional = true }
+i2cdev = { workspace = true, optional = true }
+libc = { workspace = true, optional = true }
+linux-embedded-hal = { workspace = true, optional = true, features = ["i2c"] }
+pn532 = { workspace = true, optional = true }
+zbus = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile = "3"

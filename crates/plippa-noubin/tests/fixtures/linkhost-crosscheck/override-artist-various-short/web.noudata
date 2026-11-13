@@ -1,0 +1,52 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Various Voices",
+  "playableItemProfile": "music",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Ada"
+        },
+        {
+          "primaryArtistName": "Bob"
+        }
+      ],
+      "primaryArtistOverrideName": "Ada & Bob"
+    },
+    "coverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "cover.webp",
+          "imageWebURL": "https://noub.in/VAR0010A/cover.webp?v=1"
+        }
+      ]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "Bandcamp",
+        "platformType": "store",
+        "platformURL": "https://ada.bandcamp.com/album/first-light"
+      }
+    ],
+    "furtherLinks": []
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "Duet",
+      "uniteData": {
+        "expectedFilename": "01 Duet",
+        "expectedLength": "3:33"
+      }
+    },
+    {
+      "mediaTitle": "Solo",
+      "uniteData": {
+        "expectedFilename": "02 Solo",
+        "expectedLength": "2:22"
+      }
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "BandcampServer",
+    "serverVersion": "1.0",
+    "openSubsonic": true,
+    "album": {
+      "artist": "Fixture Artist",
+      "artistId": "b:4000000001",
+      "coverArt": "ca:3000000001",
+      "created": "20 Aug 2026 06:48:08 GMT",
+      "duration": 216,
+      "genre": "electronic",
+      "id": "t:2000000009",
+      "name": "Fixture Single",
+      "songCount": 1,
+      "song": [
+        {
+          "album": "Fixture Artist",
+          "albumId": "t:2000000009",
+          "artist": "Fixture Artist",
+          "artistId": "b:4000000001",
+          "contentType": "audio/mpeg",
+          "coverArt": "ca:3000000001",
+          "created": "20 Aug 2026 06:48:08 GMT",
+          "duration": 216,
+          "genre": "electronic",
+          "id": "t:2000000009",
+          "isDir": false,
+          "isVideo": false,
+          "parent": "t:2000000009",
+          "size": 5000001,
+          "suffix": "mp3",
+          "title": "Fixture Single Track",
+          "track": 1,
+          "type": "music",
+          "year": 2026,
+          "bitRate": 256
+        }
+      ]
+    }
+  }
+}

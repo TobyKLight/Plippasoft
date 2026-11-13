@@ -1,0 +1,23 @@
+[package]
+name = "poc2_warp_bench"
+version.workspace = true
+edition.workspace = true
+description = "WARP_02: standalone CM4 eval app (measurements + listening tests for the WARP tuning constants)"
+publish = false
+
+[[bin]]
+name = "warp_bench"
+path = "src/main.rs"
+
+[features]
+default = []
+# PulseAudio / PipeWire-Pulse output (listening tests and the `latency` sub-command).
+pulse = ["dep:libpulse-binding", "dep:libpulse-simple-binding"]
+
+[dependencies]
+anyhow = { workspace = true }
+libc = { workspace = true }
+signalsmith-stretch = { workspace = true }
+symphonia = { workspace = true }
+libpulse-binding = { workspace = true, optional = true }
+libpulse-simple-binding = { workspace = true, optional = true }

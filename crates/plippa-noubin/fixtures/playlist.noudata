@@ -1,0 +1,40 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "userPlaylist",
+  "playableItemTitle": "Rainy Day",
+  "localPlaybackData": {
+    "userNotes": {
+      "userComment": "for windows",
+      "userRating": 0,
+      "userTags": [
+        "chill",
+        "rain"
+      ],
+      "createdByUser": "toby"
+    },
+    "localCoverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "rain.png"
+        }
+      ]
+    }
+  },
+  "mediaList": [
+    {
+      "localFilePaths": [
+        "../Music/Artist/Album/01 - Intro.mp3"
+      ],
+      "itemUserNotes": {
+        "userTags": [
+          "sad"
+        ]
+      }
+    },
+    {
+      "localFilePaths": [
+        "../Music/Artist/Album/02 - Song.mp3"
+      ]
+    }
+  ]
+}

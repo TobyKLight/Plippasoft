@@ -1,0 +1,25 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Hiss and Crackle",
+  "playableItemProfile": "music",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Lo Fi Larry"
+        }
+      ]
+    },
+    "releasePlatforms": [],
+    "furtherLinks": []
+  },
+  "mediaList": [
+    {
+      "uniteData": {
+        "freeDownloadURL": "https://files.example.com/hiss-and-crackle.mp3"
+      }
+    }
+  ]
+}

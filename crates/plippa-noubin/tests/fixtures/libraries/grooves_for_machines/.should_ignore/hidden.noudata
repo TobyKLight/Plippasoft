@@ -1,0 +1,11 @@
+{
+  "noudataType": "userPlaylist",
+  "playableItemTitle": "Should not be scanned",
+  "mediaList": [
+    {
+      "localFilePaths": [
+        "x.mp3"
+      ]
+    }
+  ]
+}

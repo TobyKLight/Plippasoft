@@ -1,0 +1,100 @@
+# plippa — start on boot (plippa-D-poc2)
+
+# Install / enable / ops: see boardSetup.md § Autostart (systemd).
+#
+# Hold-to-power (PWRSW_01): holding the volume encoder ≥1 s shows a warning; at 4 s
+# the UI pauses playback, writes `$PLIPPA_IPC_DIR/poweroff`, the launcher stops the
+# children, syncs and powers the host off. A plain `shutdown` sentinel
+# (`systemctl stop`, deploy script) only stops the app — it never powers off.
+#
+# PLIPPA_POWEROFF=1 is required for the host halt; without it the 4 s hold just stops
+# the app. `systemctl poweroff` and the on-device Wi-Fi join need the polkit rules
+# (`50-plippa-power.rules`, `50-plippa-network.rules`; see boardSetup.md).
+#
+# This file is installed, with the rules and the audio files, by
+# `/usr/lib/plippa/bin/plippa-install-root` (run `scripts/deploy.sh install-root` from the dev
+# machine); it is copied from the root-owned /usr/lib/plippa tree, never from the plip checkout.
+#
+# Supervision (SYS-14). The launcher restarts a crashed child with backoff 1, 2, 4, 8, 16, then
+# 30 s (reset after 60 s of stable running) and gives a child up after 8 crashes in 5 min:
+# plippa-server and plippa-leds then cool down for 10 min while engine and UI keep running
+# (the LED helper is optional hardware: dark strips are not a broken Plippa); engine or UI
+# exhaustion makes the launcher stop everything and exit 70. Every abnormal exit is non-zero, so
+# `Restart=on-failure` restarts the unit, and the start limit below ends a restart loop. Exit 0
+# is only ever an owner-requested stop (shutdown/poweroff sentinel, SIGINT, SIGTERM), which
+# must NOT restart. After the start limit trips the unit stays failed until
+# `systemctl reset-failed plippa` or a power cycle (the journal is the only signal).
+# Never add `StartLimitAction=reboot*`: a hostile stick could then reboot-loop the device.
+
+[Unit]
+Description=Plippa Noubin player (engine + UI + server + LED helper)
+Documentation=file:///home/plip/projects/Plippa_PreRelease/boards/prototypes/plippa-D-poc2/boardSetup.md
+After=network-online.target sound.target
+Wants=network-online.target
+# 5 starts in 300 s, then the unit stays failed (no StartLimitAction).
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+# The launcher reports READY=1 once all children are started and engine.sock exists (or after
+# a 5 s window, with a logged warning), WATCHDOG=1 every 10 s from its supervision loop
+# (whatever the children are doing), and STOPPING=1 at shutdown. NotifyAccess=main: only the launcher may speak for the unit.
+Type=notify
+NotifyAccess=main
+# A launcher whose supervision loop stops pinging for 30 s (the launcher itself is hung) is
+# restarted by systemd. A crashing child never withholds the ping: that is the backoff, the crash
+# budget and exit 70, which must be reachable (about 91 s of backoff) before any watchdog fires.
+WatchdogSec=30
+User=plip
+Group=plip
+WorkingDirectory=/home/plip/projects/Plippa_PreRelease
+# Linger is enabled for plip so /run/user/1000 exists at boot.
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=HOME=/home/plip
+Environment=USER=plip
+Environment=PLIPPA_ROOT=/home/plip/projects/Plippa_PreRelease
+Environment=PLIPPA_BOARD=plippa-D-poc2
+Environment=PLIPPA_SINK=pulse
+Environment=PLIPPA_UI_BACKEND=poc2
+Environment=PLIPPA_IPC_DIR=/run/user/1000/plippa
+# Use the desktop session Pulse/PipeWire (works on this desk). Do **not** point
+# at unix:/run/plippa-audio/pulse/native unless that stack is confirmed live
+# (`PULSE_SERVER=… pactl info`) — a stale socket makes the engine fall back to
+# a silent mock sink and “play” with no RCA audio.
+Environment=PULSE_SERVER=unix:/run/user/1000/pulse/native
+# Desk default: omit PLIPPA_LIBRARY_ROOT so mounted USB volumes under
+# /media/plip/ are auto-discovered. To pin one stick:
+# Environment=PLIPPA_LIBRARY_ROOT=/media/plip/CCD0-7B732
+# PWRSW_01: armed — a 4 s volume hold powers the host off (needs 50-plippa-power.rules).
+Environment=PLIPPA_POWEROFF=1
+# Release build: that is what the device runs (debug cannot hold the Now Playing frame rate) and
+# what scripts/deploy.sh pushes by default. For a debug build override ExecStart in a drop-in
+# (/etc/systemd/system/plippa.service.d/profile.conf, see README "Build profile"); the launcher
+# starts its siblings from its own directory, so this one path picks the profile of all the
+# binaries. plippa-leds is the only one carrying a file capability (cap_sys_rawio+ep, set and
+# verified by scripts/deploy.sh); never add NoNewPrivileges here, it drops that capability.
+# The binaries stay in the plip-owned tree on purpose: they run as plip, not root.
+ExecStart=/home/plip/projects/Plippa_PreRelease/target/release/plippa --board=plippa-D-poc2 --backend=poc2 --sink=pulse
+# Abnormal exits restart (see Supervision above); a deliberate exit 0 does not.
+Restart=on-failure
+RestartSec=3
+# Time for the server to checkpoint the WAL and close SQLite before SIGKILL.
+TimeoutStopSec=30
+# SIGTERM goes to the launcher only; it stops the children gracefully (SIGINT, then SIGTERM) and
+# systemd SIGKILLs whatever remains after TimeoutStopSec. With the default `control-group`
+# every child would be SIGTERMed at the same moment and could not checkpoint the WAL in order.
+KillMode=mixed
+# Starting values, to be validated on the device against measured steady-state memory
+# (library of 1,000 items, playback, waveform worker, a 500 MB upload): MemoryHigh throttles
+# and reclaims, MemoryMax is the hard ceiling that stops a runaway child taking the whole Pi.
+# Never ship a limit below measured use plus headroom.
+MemoryHigh=600M
+MemoryMax=700M
+
+# Capture launcher + child stderr in the journal (journalctl -u plippa -f).
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=plippa
+
+[Install]
+WantedBy=multi-user.target

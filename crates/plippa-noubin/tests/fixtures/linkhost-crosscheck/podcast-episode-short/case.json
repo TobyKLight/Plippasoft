@@ -1,0 +1,18 @@
+{
+  "id": "podcast-episode-short",
+  "description": "Single podcast episode with host and description, short URL.",
+  "noudataVersion": "0.4.0",
+  "publishedUrlShape": "short",
+  "publicUrl": "https://noub.in/POD00005/",
+  "longUrl": "https://noubin.com/n/tape-talk/episode-42-why-tape-is-not-dead/POD00005/",
+  "shortUrl": "https://noub.in/POD00005/",
+  "metadataUrl": "https://noub.in/POD00005/web.noudata",
+  "code": "POD00005",
+  "pathArtistSlug": "tape-talk",
+  "releaseSlug": "episode-42-why-tape-is-not-dead",
+  "noudataRevision": 1,
+  "publishedFiles": [
+    "index.html",
+    "web.noudata"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "noudataType": "userPlaylist",
+  "playableItemTitle": "Hidden",
+  "mediaList": [
+    {
+      "localFilePaths": [
+        "hidden.mp3"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+[package]
+name = "plippa-image"
+version.workspace = true
+edition.workspace = true
+description = "Cover-art image decode, square crop, scale, perceptual hash and JPEG thumbnail encode"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+zune-jpeg = { version = "0.5", default-features = false, features = ["std", "x86", "neon"] }
+zune-png = { version = "0.5", default-features = false, features = ["std", "sse"] }
+image-webp = { version = "0.2", default-features = false }
+jpeg-encoder = { version = "0.7", default-features = false, features = ["std"] }

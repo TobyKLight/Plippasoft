@@ -1,0 +1,59 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "봄날 🌸 Spring Day",
+  "playableItemFolderSafeTitle": "봄날 🌸 Spring Day",
+  "playableItemURLSafeTitle": "spring-day",
+  "playableItemProfile": "music",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Björk ✨ Guðmundsdóttir"
+        }
+      ],
+      "primaryArtistURLSafeName": "bjork",
+      "primaryArtistFolderSafeName": "Björk ✨ Guðmundsdóttir",
+      "description": "日本語の説明 — Ünïcödé — 🎵",
+      "contributors": [
+        {
+          "contributorRole": "作曲",
+          "contributorName": "李雷"
+        }
+      ]
+    },
+    "coverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "cover.webp",
+          "imageWebURL": "https://noubin.com/n/bjork/spring-day/UNIC0007/cover.webp?v=1"
+        }
+      ]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "Bandcamp",
+        "platformType": "store",
+        "platformURL": "https://ada.bandcamp.com/album/first-light"
+      }
+    ],
+    "furtherLinks": []
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "봄날",
+      "uniteData": {
+        "expectedFilename": "01 봄날",
+        "expectedLength": "4:34"
+      }
+    },
+    {
+      "mediaTitle": "Emoji Song 🎸🔥",
+      "uniteData": {
+        "expectedFilename": "02 Emoji Song",
+        "expectedLength": "2:59"
+      }
+    }
+  ]
+}

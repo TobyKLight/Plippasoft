@@ -1,0 +1,16 @@
+[package]
+name = "plippa-core"
+version.workspace = true
+edition.workspace = true
+description = "Playable-item identity, transport/session semantics, and board Capabilities"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+libc = { workspace = true }
+qrcodegen = "1"
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

@@ -1,0 +1,31 @@
+[package]
+name = "plippa-leds"
+version.workspace = true
+edition.workspace = true
+description = "LED strip helper: the only process holding CAP_SYS_RAWIO; drives WS2811 from fixed-size frames over a unix socket (SYS-02)"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+name = "plippa_leds"
+path = "src/lib.rs"
+
+[[bin]]
+name = "plippa-leds"
+path = "src/main.rs"
+
+[features]
+default = []
+# Real WS2811 output: `rs_ws281x` programs the SoC PWM/DMA engine through /dev/mem, which needs
+# CAP_SYS_RAWIO. Off by default so a dev machine without libclang still builds the workspace;
+# `scripts/deploy.sh` builds the helper with this feature for the device.
+ws281x = ["dep:rs_ws281x"]
+
+[dependencies]
+plippa-board = { workspace = true }
+plippa-ipc-proto = { workspace = true }
+libc = { workspace = true }
+rs_ws281x = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile = "3"

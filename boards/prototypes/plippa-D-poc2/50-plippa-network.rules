@@ -1,0 +1,15 @@
+// UI_CONTROL_01: let the Plippa player (User=plip, no logind session) join a Wi-Fi network
+// from the on-device password screen. Scoped to the two NetworkManager actions nmcli needs
+// and to that one user; nothing else is granted (no hostname, power or other settings actions).
+//
+// Install: sudo cp 50-plippa-network.rules /etc/polkit-1/rules.d/
+// polkitd picks it up immediately (no restart). Verify with
+//   pkcheck --action-id org.freedesktop.NetworkManager.settings.modify.system --process $pid
+// on a process running as plip: it must exit 0.
+polkit.addRule(function (action, subject) {
+    if (subject.user !== "plip") { return; }
+    if (action.id === "org.freedesktop.NetworkManager.settings.modify.system" ||
+        action.id === "org.freedesktop.NetworkManager.network-control") {
+        return polkit.Result.YES;
+    }
+});

@@ -1,0 +1,25 @@
+{
+  "id": "mix-single-file-long",
+  "description": "DJ mix as one media file without cueLists; streaming-only platforms (no store: publishes with a warning, uniteData not required).",
+  "noudataVersion": "0.4.0",
+  "publishedUrlShape": "long",
+  "publicUrl": "https://noubin.com/n/dj-nightshift/midnight-drive-mix/MIX00006/",
+  "longUrl": "https://noubin.com/n/dj-nightshift/midnight-drive-mix/MIX00006/",
+  "shortUrl": "https://noub.in/MIX00006/",
+  "metadataUrl": "https://noubin.com/n/dj-nightshift/midnight-drive-mix/MIX00006/web.noudata",
+  "code": "MIX00006",
+  "pathArtistSlug": "dj-nightshift",
+  "releaseSlug": "midnight-drive-mix",
+  "noudataRevision": 1,
+  "publishedFiles": [
+    "cover.webp",
+    "index.html",
+    "thumbnails/cover-1024.jpg",
+    "thumbnails/cover-1024.webp",
+    "thumbnails/cover-128.jpg",
+    "thumbnails/cover-128.webp",
+    "thumbnails/cover-512.jpg",
+    "thumbnails/cover-512.webp",
+    "web.noudata"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "BandcampServer",
+    "serverVersion": "1.0",
+    "openSubsonic": true,
+    "artist": {
+      "id": "b:4000000001",
+      "name": "Fixture Artist",
+      "albumCount": 2,
+      "coverArt": "ca:3000000001",
+      "album": [
+        {
+          "artist": "Fixture Artist",
+          "id": "a:1000000001",
+          "name": "Fixture Album One",
+          "duration": 1389,
+          "playCount": 0,
+          "songCount": 2,
+          "coverArt": "ca:3000000001",
+          "created": "20 Aug 2026 06:48:08 GMT"
+        },
+        {
+          "artist": "Fixture Artist",
+          "id": "t:2000000009",
+          "name": "Fixture Single",
+          "duration": 216,
+          "playCount": 0,
+          "songCount": 1,
+          "coverArt": "ca:3000000001",
+          "created": "20 Aug 2026 06:48:08 GMT"
+        }
+      ]
+    }
+  }
+}

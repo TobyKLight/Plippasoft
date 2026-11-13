@@ -1,0 +1,16 @@
+[package]
+name = "signalsmith-stretch"
+version = "0.1.3"
+edition = "2021"
+authors = ["Colin Marc <hi@colinmarc.com>"]
+description = "Vendored wrapper for the Signalsmith Stretch time-stretch algorithm (MIT), pre-generated bindings"
+license = "MIT"
+publish = false
+build = "build.rs"
+
+[lib]
+name = "signalsmith_stretch"
+path = "src/lib.rs"
+
+[build-dependencies]
+cc = "1"

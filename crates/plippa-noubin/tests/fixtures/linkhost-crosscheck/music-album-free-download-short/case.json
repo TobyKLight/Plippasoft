@@ -1,0 +1,25 @@
+{
+  "id": "music-album-free-download-short",
+  "description": "Free music album: freeDownloadURL per track, no releasePlatforms, free-download button enabled in the (private) look options, short URL.",
+  "noudataVersion": "0.4.0",
+  "publishedUrlShape": "short",
+  "publicUrl": "https://noub.in/FREE0003/",
+  "longUrl": "https://noubin.com/n/open-hands/free-sessions/FREE0003/",
+  "shortUrl": "https://noub.in/FREE0003/",
+  "metadataUrl": "https://noub.in/FREE0003/web.noudata",
+  "code": "FREE0003",
+  "pathArtistSlug": "open-hands",
+  "releaseSlug": "free-sessions",
+  "noudataRevision": 1,
+  "publishedFiles": [
+    "cover.webp",
+    "index.html",
+    "thumbnails/cover-1024.jpg",
+    "thumbnails/cover-1024.webp",
+    "thumbnails/cover-128.jpg",
+    "thumbnails/cover-128.webp",
+    "thumbnails/cover-512.jpg",
+    "thumbnails/cover-512.webp",
+    "web.noudata"
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "The Hobbit",
+  "playableItemProfile": "audiobook",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "J.R.R. Tolkien"
+        },
+        {
+          "primaryArtistName": "Andy Serkis"
+        }
+      ]
+    }
+  },
+  "localPlaybackData": {
+    "resumeAtItem": 2
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "Part 1",
+      "localFilePaths": [
+        "hobbit-1.m4b"
+      ],
+      "itemLocalPlaybackData": {
+        "startFrom": "0:12",
+        "resumeFromTime": "1:23:20.5",
+        "overrideResumeBehaviour": "alwaysResume",
+        "useSpecificAlternate": 1,
+        "repeatItem": false
+      },
+      "lyricsTranscript": "Chapter one.",
+      "cueLists": [
+        {
+          "cueListType": "nav",
+          "cues": [
+            {
+              "startTime": "0",
+              "cueTextSpans": [
+                {
+                  "text": "An Unexpected Party"
+                }
+              ]
+            },
+            {
+              "startTime": "45:10",
+              "cueTextSpans": [
+                {
+                  "text": "Roast Mutton"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mediaTitle": "Part 2",
+      "localFilePaths": [
+        "hobbit-2.m4b"
+      ]
+    }
+  ]
+}

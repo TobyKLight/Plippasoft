@@ -1,0 +1,72 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Northern Lights",
+  "playableItemURLSafeTitle": "northern-lights",
+  "playableItemProfile": "music",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "The Aurora Band"
+        }
+      ],
+      "primaryArtistURLSafeName": "aurora-band",
+      "primaryArtistFolderSafeName": "The Aurora Band",
+      "description": "Debut album recorded in one week.\nSecond line of the description.",
+      "releaseDate": "2026-03-20",
+      "contributors": [
+        {
+          "contributorRole": "producer",
+          "contributorName": "Sam Producer"
+        }
+      ],
+      "categories": [
+        {
+          "categoryType": "genre",
+          "categoryName": "Shoegaze"
+        }
+      ]
+    },
+    "coverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "cover.webp",
+          "imageWebURL": "https://noubin.com/n/aurora-band/northern-lights/ALBUM002/cover.webp?v=1"
+        }
+      ]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "Bandcamp",
+        "platformType": "store",
+        "platformURL": "https://ada.bandcamp.com/album/first-light"
+      }
+    ],
+    "furtherLinks": []
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "Polar Night",
+      "uniteData": {
+        "expectedFilename": "01 Polar Night",
+        "expectedLength": "3:45"
+      }
+    },
+    {
+      "mediaTitle": "Green Sky",
+      "uniteData": {
+        "expectedFilename": "02 Green Sky",
+        "expectedLength": "4:05"
+      }
+    },
+    {
+      "mediaTitle": "Dawn",
+      "uniteData": {
+        "expectedFilename": "03 Dawn",
+        "expectedLength": "1:02:03"
+      }
+    }
+  ]
+}

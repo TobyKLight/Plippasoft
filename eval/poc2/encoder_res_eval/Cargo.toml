@@ -1,0 +1,13 @@
+[package]
+name = "poc2_encoder_res_eval"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ctrlc = { workspace = true }
+embedded-graphics = { workspace = true }
+gpio-cdev = { workspace = true }
+linux-embedded-hal = { workspace = true, features = ["gpio_cdev", "spi"] }
+mipidsi = { workspace = true }
+i2cdev = { workspace = true }
+rs_ws281x = { workspace = true }

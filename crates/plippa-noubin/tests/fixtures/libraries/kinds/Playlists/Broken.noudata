@@ -1,0 +1,12 @@
+{
+  "noudataVersion": "0.4.0",
+  "playableItemTitle": "Broken Link",
+  "mediaList": [
+    {
+      "mediaTitle": "Gone",
+      "localFilePaths": [
+        "../Music/Nope/missing.mp3"
+      ]
+    }
+  ]
+}

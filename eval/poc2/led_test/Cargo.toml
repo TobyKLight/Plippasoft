@@ -1,0 +1,8 @@
+[package]
+name = "poc2_led_test"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ctrlc = { workspace = true }
+rs_ws281x = "0.5.1"

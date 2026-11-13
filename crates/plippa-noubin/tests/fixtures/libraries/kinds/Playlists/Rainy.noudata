@@ -1,0 +1,23 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "userPlaylist",
+  "playableItemTitle": "Rainy Day",
+  "mediaList": [
+    {
+      "mediaTitle": "not authoritative",
+      "localFilePaths": [
+        "../Music/Band/Album/01 - One.mp3"
+      ]
+    },
+    {
+      "localFilePaths": [
+        "../Music/Band/Album/02 - Two.mp3"
+      ]
+    },
+    {
+      "localFilePaths": [
+        "../Mixes/Japanese/mix.mp3"
+      ]
+    }
+  ]
+}

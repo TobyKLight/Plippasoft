@@ -1,0 +1,71 @@
+[workspace]
+resolver = "2"
+# `eval/` is its own workspace (eval/Cargo.toml): the hardware POC apps need
+# libclang, spidev and gpio-cdev, which neither a dev box nor the Pi build has.
+# Excluding it keeps `cargo build --workspace` to the product only.
+exclude = ["third_party/tiny_http", "third_party/signalsmith-stretch", "eval"]
+members = [
+    # Production crates
+    "crates/plippa-core",
+    "crates/plippa-ipc-proto",
+    "crates/plippa-noubin",
+    "crates/plippa-audio",
+    "crates/plippa-hw",
+    "crates/plippa-board",
+    "crates/plippa-image",
+    "crates/plippa-store",
+    # Production binaries
+    "bins/plippa-engine",
+    "bins/plippa-ui",
+    "bins/plippa-server",
+    "bins/plippa-leds",
+    "bins/plippa",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+ctrlc = "3.4"
+nix = { version = "0.29", features = ["fs", "poll"] }
+postcard = { version = "1", features = ["alloc"] }
+rand = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tiny_http = "0.12"
+ureq = { version = "2", default-features = false, features = ["tls"] }
+embedded-graphics = "0.8"
+embedded-hal = "1"
+gpio-cdev = "0.6"
+i2cdev = "0.6"
+libc = "0.2"
+linux-embedded-hal = { version = "0.4", default-features = false }
+mipidsi = "0.10"
+pn532 = "0.5.0"
+libpulse-binding = "2.29"
+libpulse-simple-binding = "2.29"
+rubato = "0.16"
+realfft = "3.5"
+signalsmith-stretch = "0.1"
+symphonia = { version = "0.5", default-features = false, features = ["mp3", "flac", "wav", "pcm"] }
+rs_ws281x = "0.5.1"
+plippa-core = { path = "crates/plippa-core" }
+plippa-ipc-proto = { path = "crates/plippa-ipc-proto" }
+plippa-noubin = { path = "crates/plippa-noubin" }
+plippa-image = { path = "crates/plippa-image" }
+plippa-audio = { path = "crates/plippa-audio" }
+plippa-hw = { path = "crates/plippa-hw" }
+plippa-board = { path = "crates/plippa-board" }
+plippa-store = { path = "crates/plippa-store" }
+plippa-leds = { path = "bins/plippa-leds" }
+rusqlite = { version = "0.32", features = ["bundled"] }
+toml = "0.8"
+zbus = "5"
+
+[patch.crates-io]
+# Local copy of tiny_http 0.12.0 with a worker-pool starvation fix (see third_party/tiny_http/README.md).
+tiny_http = { path = "third_party/tiny_http" }
+# Vendored Signalsmith Stretch wrapper with pre-generated bindings (no libclang needed), see its README.md.
+signalsmith-stretch = { path = "third_party/signalsmith-stretch" }

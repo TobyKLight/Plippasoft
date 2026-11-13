@@ -1,0 +1,133 @@
+#!/bin/bash
+# plippa-install-root: the ONLY thing an operator or scripts/deploy.sh runs as root (SYS-06).
+#
+#   sudo /usr/lib/plippa/bin/plippa-install-root
+#
+# Everything root executes or installs on a Plippa device comes from /usr/lib/plippa, a
+# root-owned tree, never from the plip-owned checkout. This tool first AUDITS that tree and
+# installs nothing if the audit fails, then installs:
+#   - the two polkit rules            -> /etc/polkit-1/rules.d/   (root:root 0644)
+#   - the /dev/mem udev rule (WS2811) -> /etc/udev/rules.d/       (root:root 0644), reloaded
+#   - the PipeWire quantum + radio    -> via audio/install.sh (also retires the POC1 audio target)
+#   - plippa.service                  -> /etc/systemd/system/     (root:root 0644), daemon-reload
+# It never reads or writes the plip tree. Safe to re-run.
+#
+# Audit rules (all must hold, else exit 3 and nothing is installed):
+#   - no component of the path /usr/lib/plippa is a symlink
+#   - every directory above it and every file/directory under it is owned by root
+#   - nothing is group- or world-writable, nothing is setuid/setgid, no symlinks or special files
+#
+# DESTDIR (tests only): install into $DESTDIR, take the source tree from
+# $DESTDIR/usr/lib/plippa, skip systemctl. PLIPPA_ROOT_UID (honoured only with DESTDIR) is the
+# uid the audit expects as owner (default 0), so the audit can be exercised without root.
+set -eu
+umask 022
+
+D="${DESTDIR:-}"
+EXPECT_UID=0
+if [ -n "$D" ]; then
+    EXPECT_UID="${PLIPPA_ROOT_UID:-0}"
+fi
+# Fixed, never derived from $0 or the environment.
+SRC_REL=usr/lib/plippa
+SRC="$D/$SRC_REL"
+
+fail() {
+    echo "plippa-install-root: $*" >&2
+    exit "${2:-1}"
+}
+
+audit_fail() {
+    echo "plippa-install-root: AUDIT FAILED: $*" >&2
+    echo "plippa-install-root: nothing was installed" >&2
+    exit 3
+}
+
+if [ "$(id -u)" -ne 0 ] && [ -z "$D" ]; then
+    fail "must run as root (sudo $SRC/bin/plippa-install-root)"
+fi
+
+# ---- audit ----------------------------------------------------------------------------
+audit() {
+    [ -d "$SRC" ] || audit_fail "$SRC is missing"
+
+    # No symlink in any component of the path (below DESTDIR, which is the test's own root).
+    local cur="" comp
+    if [ -n "$D" ]; then
+        [ -d "$D" ] || audit_fail "DESTDIR $D is not a directory"
+        cur="$(cd "$D" && pwd -P)"
+    fi
+    local IFS=/
+    for comp in $SRC_REL; do
+        cur="$cur/$comp"
+        [ ! -L "$cur" ] || audit_fail "$cur is a symlink"
+        [ -d "$cur" ] || audit_fail "$cur is not a directory"
+        # The directories above the tree must not be writable by anyone but root either.
+        local st
+        st="$(stat -c '%u %a' "$cur")"
+        local uid="${st% *}" mode="${st#* }"
+        [ "$uid" = "$EXPECT_UID" ] || audit_fail "$cur is owned by uid $uid, expected $EXPECT_UID"
+        [ $(( 8#$mode & 8#022 )) -eq 0 ] || audit_fail "$cur is group/world-writable ($mode)"
+    done
+    unset IFS
+
+    local bad
+    bad="$(find "$SRC" -type l -print -quit)"
+    [ -z "$bad" ] || audit_fail "symlink inside the tree: $bad"
+    bad="$(find "$SRC" ! -type f ! -type d -print -quit)"
+    [ -z "$bad" ] || audit_fail "special file inside the tree: $bad"
+    bad="$(find "$SRC" ! -uid "$EXPECT_UID" -print -quit)"
+    [ -z "$bad" ] || audit_fail "not owned by uid $EXPECT_UID: $bad"
+    bad="$(find "$SRC" -perm /022 -print -quit)"
+    [ -z "$bad" ] || audit_fail "group/world-writable: $bad"
+    bad="$(find "$SRC" -perm /6000 -print -quit)"
+    [ -z "$bad" ] || audit_fail "setuid/setgid: $bad"
+
+    local f
+    for f in polkit/50-plippa-power.rules polkit/50-plippa-network.rules \
+             audio/install.sh audio/retire-system-audio.sh \
+             audio/pipewire/51-plippa-latency.conf audio/radio/99-plippa.conf \
+             udev/99-ws281x-mem.rules systemd/plippa.service; do
+        [ -f "$SRC/$f" ] || audit_fail "payload file missing: $SRC/$f"
+    done
+}
+
+audit
+
+# ---- install (only after a clean audit) -----------------------------------------------
+run() {
+    echo "+ $*"
+    "$@"
+}
+
+echo "== polkit rules =="
+run install -d -m 0755 -o root -g root "$D/etc/polkit-1/rules.d"
+for r in 50-plippa-power.rules 50-plippa-network.rules; do
+    run install -m 0644 -o root -g root "$SRC/polkit/$r" "$D/etc/polkit-1/rules.d/$r"
+done
+
+echo "== audio (PipeWire quantum, radio identity, retire POC1 target) =="
+run env DESTDIR="$D" bash "$SRC/audio/install.sh"
+
+echo "== udev (/dev/mem for the LED helper) =="
+run install -d -m 0755 -o root -g root "$D/etc/udev/rules.d"
+run install -m 0644 -o root -g root "$SRC/udev/99-ws281x-mem.rules" "$D/etc/udev/rules.d/99-ws281x-mem.rules"
+if [ -n "$D" ]; then
+    echo "(DESTDIR set: skipping udevadm reload)"
+else
+    if command -v udevadm >/dev/null 2>&1; then
+        run udevadm control --reload-rules
+        run udevadm trigger --name-match=mem
+    fi
+fi
+
+echo "== plippa.service =="
+run install -d -m 0755 -o root -g root "$D/etc/systemd/system"
+run install -m 0644 -o root -g root "$SRC/systemd/plippa.service" "$D/etc/systemd/system/plippa.service"
+if [ -n "$D" ]; then
+    echo "(DESTDIR set: skipping systemctl daemon-reload)"
+else
+    run systemctl daemon-reload
+fi
+
+echo "plippa-install-root: done (restart the service to apply: sudo systemctl restart plippa.service)"

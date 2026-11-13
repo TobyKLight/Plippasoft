@@ -1,0 +1,12 @@
+[package]
+name = "poc2_qr_probe"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ctrlc = { workspace = true }
+embedded-graphics = { workspace = true }
+gpio-cdev = { workspace = true }
+linux-embedded-hal = { workspace = true, features = ["gpio_cdev", "spi"] }
+mipidsi = { workspace = true }
+plippa-core = { workspace = true }

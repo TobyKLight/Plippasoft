@@ -1,0 +1,69 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "Rocksteady Set",
+  "playableItemProfile": "mix",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Japanese Rude Sounds"
+        }
+      ]
+    }
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "Rocksteady Set",
+      "localFilePaths": [
+        "mix.mp3"
+      ],
+      "cueLists": [
+        {
+          "cueListType": "nav",
+          "cueListTitle": "Chapters",
+          "cues": [
+            {
+              "startTime": "0",
+              "endTime": "10:00",
+              "cueTextSpans": [
+                {
+                  "text": "Warm up"
+                }
+              ]
+            },
+            {
+              "startTime": "10:00",
+              "cueTextSpans": [
+                {
+                  "text": "Peak time"
+                }
+              ]
+            },
+            {
+              "startTime": "45:00",
+              "cueTextSpans": [
+                {
+                  "text": "Cool down"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "cueListType": "credits",
+          "cues": [
+            {
+              "startTime": "0",
+              "cueTextSpans": [
+                {
+                  "text": "Wicked Babylon - Clippers"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "BandcampServer",
+    "serverVersion": "1.0",
+    "openSubsonic": true,
+    "searchResult3": {
+      "song": [
+        {
+          "album": "Fixture Artist",
+          "albumId": "a:1000000001",
+          "artist": "Fixture Artist",
+          "artistId": "b:4000000001",
+          "contentType": "audio/mpeg",
+          "coverArt": "ca:3000000001",
+          "created": "20 Aug 2026 06:48:08 GMT",
+          "duration": 600,
+          "genre": "electronic",
+          "id": "t:2000000001",
+          "isDir": false,
+          "isVideo": false,
+          "parent": "a:1000000001",
+          "size": 19200000,
+          "suffix": "mp3",
+          "title": "Fixture Track A",
+          "track": 1,
+          "type": "music",
+          "year": 2026,
+          "bitRate": 320
+        }
+      ]
+    }
+  }
+}

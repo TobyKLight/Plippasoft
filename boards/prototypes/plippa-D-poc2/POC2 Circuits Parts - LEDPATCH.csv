@@ -1,0 +1,66 @@
+Data Stream,LED Index,Label,Purpse
+NOTE all WS2811 RGB LEDS,,,
+F_LED_DATA,0,F_LED_SW6,Front panel switch 6 backlight
+F_LED_DATA,1,F_LED_VUL_1,Volume Meter Left
+F_LED_DATA,2,F_LED_VUL_2,Volume Meter Left
+F_LED_DATA,3,F_LED_VUL_3,Volume Meter Left
+F_LED_DATA,4,F_LED_VUL_4,Volume Meter Left
+F_LED_DATA,5,F_LED_VUL_5,Volume Meter Left
+F_LED_DATA,6,F_LED_VUL_6,Volume Meter Left
+F_LED_DATA,7,F_LED_VUL_7,Volume Meter Left
+F_LED_DATA,8,F_LED_VUL_8,Volume Meter Left
+F_LED_DATA,9,F_LED_VUL_9,Volume Meter Left
+F_LED_DATA,10,F_LED_VUL_10,Volume Meter Left
+F_LED_DATA,11,F_LED_VUR_1,Volume Meter Right
+F_LED_DATA,12,F_LED_VUR_2,Volume Meter Right
+F_LED_DATA,13,F_LED_VUR_3,Volume Meter Right
+F_LED_DATA,14,F_LED_VUR_4,Volume Meter Right
+F_LED_DATA,15,F_LED_VUR_5,Volume Meter Right
+F_LED_DATA,16,F_LED_VUR_6,Volume Meter Right
+F_LED_DATA,17,F_LED_VUR_7,Volume Meter Right
+F_LED_DATA,18,F_LED_VUR_8,Volume Meter Right
+F_LED_DATA,19,F_LED_VUR_9,Volume Meter Right
+F_LED_DATA,20,F_LED_VUR_10,Volume Meter Right
+F_LED_DATA,21,F_LED_PWR1,Power LED
+F_LED_DATA,22,F_LED_SW2,Front panel switch 2 backlight
+F_LED_DATA,23,F_LED_SWE4_1,Encoder 4 meter 
+F_LED_DATA,24,F_LED_SWE4_2,Encoder 4 meter 
+F_LED_DATA,25,F_LED_SWE4_3,Encoder 4 meter 
+F_LED_DATA,26,F_LED_SWE4_4,Encoder 4 meter 
+F_LED_DATA,27,F_LED_SWE4_5,Encoder 4 meter 
+F_LED_DATA,28,F_LED_SWE3_1,Encoder 5 meter
+F_LED_DATA,29,F_LED_SWE3_2,Encoder 5 meter
+F_LED_DATA,30,F_LED_SWE3_3,Encoder 5 meter
+F_LED_DATA,31,F_LED_SWE3_4,Encoder 5 meter
+F_LED_DATA,32,F_LED_SWE3_5,Encoder 5 meter
+,,,
+BT_LED_DATA,0,BT_LED_NFC20,LED Ring around NFC sensor
+BT_LED_DATA,1,BT_LED_NFC21,LED Ring around NFC sensor
+BT_LED_DATA,2,BT_LED_NFC22,LED Ring around NFC sensor
+BT_LED_DATA,3,BT_LED_NFC23,LED Ring around NFC sensor
+BT_LED_DATA,4,BT_LED_NFC24,LED Ring around NFC sensor
+BT_LED_DATA,5,BT_LED_NFC1,LED Ring around NFC sensor
+BT_LED_DATA,6,BT_LED_NFC2,LED Ring around NFC sensor
+BT_LED_DATA,7,BT_LED_NFC3,LED Ring around NFC sensor
+BT_LED_DATA,8,BT_LED_NFC4,LED Ring around NFC sensor
+BT_LED_DATA,9,BT_LED_NFC5,LED Ring around NFC sensor
+BT_LED_DATA,10,BT_LED_NFC6,LED Ring around NFC sensor
+BT_LED_DATA,11,BT_LED_NFC7,LED Ring around NFC sensor
+BT_LED_DATA,12,BT_LED_NFC8,LED Ring around NFC sensor
+BT_LED_DATA,13,BT_LED_NFC9,LED Ring around NFC sensor
+BT_LED_DATA,14,BT_LED_NFC10,LED Ring around NFC sensor
+BT_LED_DATA,15,BT_LED_NFC11,LED Ring around NFC sensor
+BT_LED_DATA,16,BT_LED_NFC12,LED Ring around NFC sensor
+BT_LED_DATA,17,BT_LED_NFC13,LED Ring around NFC sensor
+BT_LED_DATA,18,BT_LED_NFC14,LED Ring around NFC sensor
+BT_LED_DATA,19,BT_LED_NFC15,LED Ring around NFC sensor
+BT_LED_DATA,20,BT_LED_NFC16,LED Ring around NFC sensor
+BT_LED_DATA,21,BT_LED_NFC17,LED Ring around NFC sensor
+BT_LED_DATA,22,BT_LED_NFC18,LED Ring around NFC sensor
+BT_LED_DATA,23,BT_LED_NFC19,LED Ring around NFC sensor
+BT_LED_DATA,24,BT_LED_SW1,Base Top Panel Switch 1 backlight
+BT_LED_DATA,25,BT_LED_SW2,Base Top Panel Switch 2 backlight
+BT_LED_DATA,26,BT_LED_SW3,Base Top Panel Switch 3 backlight
+BT_LED_DATA,27,BT_LED_SW4,Base Top Panel Switch 4 backlight
+BT_LED_DATA,28,BT_LED_SW5,Base Top Panel Switch 5 backlight
+BT_LED_DATA,29,BT_LED_SW6,Base Top Panel Switch 6 backlight

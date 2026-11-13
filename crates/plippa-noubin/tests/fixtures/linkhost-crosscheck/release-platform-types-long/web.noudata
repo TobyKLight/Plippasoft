@@ -1,0 +1,74 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "All Platforms",
+  "playableItemProfile": "music",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Multi Platform"
+        }
+      ]
+    },
+    "coverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "cover.webp",
+          "imageWebURL": "https://noubin.com/n/multi-platform/all-platforms/PLAT0009/cover.webp?v=1"
+        }
+      ]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "Bandcamp",
+        "platformType": "store",
+        "platformURL": "https://multi.bandcamp.com/album/all"
+      },
+      {
+        "platformName": "Apple Music Store",
+        "platformType": "DRMStore",
+        "platformURL": "https://music.apple.example/album/all"
+      },
+      {
+        "platformName": "Example Streaming",
+        "platformType": "streaming",
+        "platformURL": "https://stream.example/album/all"
+      },
+      {
+        "platformName": "Vinyl shop",
+        "platformType": "other",
+        "platformURL": "https://shop.example/vinyl",
+        "customVerb": "Order on"
+      }
+    ],
+    "furtherLinks": [
+      {
+        "linkTitle": "Instagram",
+        "linkURL": "https://instagram.example/multi"
+      },
+      {
+        "linkTitle": "Video",
+        "linkURL": "https://video.example/bands/multi"
+      }
+    ]
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "Track A",
+      "uniteData": {
+        "expectedFilename": "01 Track A",
+        "expectedLength": "3"
+      }
+    },
+    {
+      "mediaTitle": "Track B",
+      "uniteData": {
+        "expectedFilename": "02 Track B",
+        "expectedLength": "3:05",
+        "freeDownloadURL": "https://files.example.com/track-b.flac"
+      }
+    }
+  ]
+}

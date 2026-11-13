@@ -1,0 +1,64 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "The Clockmaker's Daughter",
+  "playableItemProfile": "audiobook",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Mary Shelley-Jones"
+        }
+      ],
+      "description": "A gothic novel in three chapters.",
+      "releaseDate": "2025-11-01",
+      "language": "en",
+      "contributors": [
+        {
+          "contributorRole": "narrator",
+          "contributorName": "Tom Reader"
+        }
+      ]
+    },
+    "coverImage": {
+      "images": [
+        {
+          "imageLocalFilename": "cover.webp",
+          "imageWebURL": "https://noubin.com/n/mary-shelley-jones/the-clockmaker-s-daughter/BOOK0004/cover.webp?v=1"
+        }
+      ]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "Libro",
+        "platformType": "store",
+        "platformURL": "https://libro.example/clockmaker"
+      }
+    ],
+    "furtherLinks": []
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "Chapter 1",
+      "uniteData": {
+        "expectedFilename": "Chapter 01",
+        "expectedLength": "45:12"
+      }
+    },
+    {
+      "mediaTitle": "Chapter 2",
+      "uniteData": {
+        "expectedFilename": "Chapter 02",
+        "expectedLength": "51:30"
+      }
+    },
+    {
+      "mediaTitle": "Chapter 3",
+      "uniteData": {
+        "expectedFilename": "Chapter 03",
+        "expectedLength": "1:02:45"
+      }
+    }
+  ]
+}

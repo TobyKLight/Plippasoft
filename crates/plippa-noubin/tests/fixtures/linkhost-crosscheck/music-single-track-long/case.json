@@ -1,0 +1,25 @@
+{
+  "id": "music-single-track-long",
+  "description": "Music single, one track, cover + thumbnails, long URL derived from artist and title.",
+  "noudataVersion": "0.4.0",
+  "publishedUrlShape": "long",
+  "publicUrl": "https://noubin.com/n/ada-lovelace/first-light/MUSIC001/",
+  "longUrl": "https://noubin.com/n/ada-lovelace/first-light/MUSIC001/",
+  "shortUrl": "https://noub.in/MUSIC001/",
+  "metadataUrl": "https://noubin.com/n/ada-lovelace/first-light/MUSIC001/web.noudata",
+  "code": "MUSIC001",
+  "pathArtistSlug": "ada-lovelace",
+  "releaseSlug": "first-light",
+  "noudataRevision": 1,
+  "publishedFiles": [
+    "cover.webp",
+    "index.html",
+    "thumbnails/cover-1024.jpg",
+    "thumbnails/cover-1024.webp",
+    "thumbnails/cover-128.jpg",
+    "thumbnails/cover-128.webp",
+    "thumbnails/cover-512.jpg",
+    "thumbnails/cover-512.webp",
+    "web.noudata"
+  ]
+}

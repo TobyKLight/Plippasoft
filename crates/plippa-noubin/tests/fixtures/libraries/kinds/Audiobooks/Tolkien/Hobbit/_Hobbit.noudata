@@ -1,0 +1,29 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "release",
+  "playableItemTitle": "The Hobbit",
+  "playableItemProfile": "audiobook",
+  "releaseData": {
+    "credits": {
+      "primaryArtists": [
+        {
+          "primaryArtistName": "J.R.R. Tolkien"
+        }
+      ]
+    }
+  },
+  "mediaList": [
+    {
+      "mediaTitle": "Part 1",
+      "localFilePaths": [
+        "hobbit-1.m4b"
+      ]
+    },
+    {
+      "mediaTitle": "Part 2",
+      "localFilePaths": [
+        "hobbit-2.m4b"
+      ]
+    }
+  ]
+}

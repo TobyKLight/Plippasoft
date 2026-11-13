@@ -1,0 +1,12 @@
+[package]
+name = "poc2_nfc_test_PN532"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ctrlc = { workspace = true }
+embedded-hal = { workspace = true }
+i2cdev = { workspace = true }
+libc = { workspace = true }
+linux-embedded-hal = { workspace = true, features = ["i2c"] }
+pn532 = { workspace = true }

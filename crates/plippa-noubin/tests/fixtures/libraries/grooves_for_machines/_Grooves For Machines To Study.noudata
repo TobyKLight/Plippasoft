@@ -1,0 +1,35 @@
+{
+  "noudataVersion": "0.4.0",
+  "noudataType": "userPlaylist",
+  "_whatAmILookingAt": "Local .noudata for Bandcamp dump under assets/testMedia (Grooves For Machines To Study)",
+  "noubinKey": "https://boganmongrel.bandcamp.com/album/grooves-for-machines-to-study",
+  "noubinKeyNormalised": "boganmongrel.bandcamp.com/album/grooves-for-machines-to-study/",
+  "playableItemTitle": "Grooves For Machines To Study",
+  "playableItemSafeTitle": "Grooves For Machines To Study",
+  "mediaList": [
+    {
+      "mediaTitle": "Rain",
+      "localFilePaths": [
+        "MP3 V0/Bogan Mongrel Jnr - Grooves For Machines To Study - 01 Rain.mp3",
+        "FLAC/Bogan Mongrel Jnr - Grooves For Machines To Study - 01 Rain.flac",
+        "WAV/Bogan Mongrel Jnr - Grooves For Machines To Study - 01 Rain.wav",
+        "AAC/Bogan Mongrel Jnr - Grooves For Machines To Study - 01 Rain.m4a",
+        "OGG/Bogan Mongrel Jnr - Grooves For Machines To Study - 01 Rain.ogg",
+        "MP3 320/Bogan Mongrel Jnr - Grooves For Machines To Study - 01 Rain.mp3"
+      ]
+    },
+    {
+      "mediaTitle": "Beat For Machines To Study",
+      "localFilePaths": [
+        "MP3 V0/Bogan Mongrel - Grooves For Machines To Study - 02 Beat For Machines To Study.mp3",
+        "FLAC/Bogan Mongrel - Grooves For Machines To Study - 02 Beat For Machines To Study.flac"
+      ]
+    },
+    {
+      "mediaTitle": "Slow Beat For Machines To Study More Slowly",
+      "localFilePaths": [
+        "MP3 V0/Bogan Mongrel - Grooves For Machines To Study - 03 Slow Beat For Machines To Study More Slowly.mp3"
+      ]
+    }
+  ]
+}

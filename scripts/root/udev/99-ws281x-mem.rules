@@ -1,0 +1,7 @@
+# Plippa: WS2811 output goes through /dev/mem (rpi_ws281x PWM+DMA on GPIO 12/13).
+#
+# Only `plippa-leds` drives the strips (SYS-02). The group/mode below lets that helper OPEN
+# /dev/mem; the kernel still refuses it any read/write without CAP_SYS_RAWIO, which the helper
+# alone carries as a file capability (scripts/deploy.sh sets and verifies it). plippa-ui, the
+# process that parses untrusted input, has no capability and no group access.
+SUBSYSTEM=="mem", KERNEL=="mem", GROUP="gpio", MODE="0660"

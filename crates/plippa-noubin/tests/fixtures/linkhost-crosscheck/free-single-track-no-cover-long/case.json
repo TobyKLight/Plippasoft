@@ -1,0 +1,18 @@
+{
+  "id": "free-single-track-no-cover-long",
+  "description": "Free single track without a cover image (coverImage must be omitted, not empty), free download URL, long URL.",
+  "noudataVersion": "0.4.0",
+  "publishedUrlShape": "long",
+  "publicUrl": "https://noubin.com/n/lo-fi-larry/hiss-and-crackle/FREE0011/",
+  "longUrl": "https://noubin.com/n/lo-fi-larry/hiss-and-crackle/FREE0011/",
+  "shortUrl": "https://noub.in/FREE0011/",
+  "metadataUrl": "https://noubin.com/n/lo-fi-larry/hiss-and-crackle/FREE0011/web.noudata",
+  "code": "FREE0011",
+  "pathArtistSlug": "lo-fi-larry",
+  "releaseSlug": "hiss-and-crackle",
+  "noudataRevision": 1,
+  "publishedFiles": [
+    "index.html",
+    "web.noudata"
+  ]
+}

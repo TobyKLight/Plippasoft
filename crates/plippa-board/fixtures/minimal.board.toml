@@ -1,0 +1,35 @@
+# Hypothetical stripped-down board used by tests: menu encoder + back + power
+# only. No transport buttons, no play-mode, no assignable encoder, no LEDs.
+[board]
+id = "test-minimal"
+model = "D"
+
+[capabilities]
+nfc_write = true
+media_library_management = true
+local_display = true
+
+[roles]
+volume_encoder = "ENC_VOL"
+menu_encoder = "ENC_MENU"
+back_button = "BTN_BACK"
+power_button = "ENC_VOL_PUSH"
+
+[encoders.ENC_VOL]
+a_gpio = 1
+b_gpio = 2
+push = "ENC_VOL_PUSH"
+
+[encoders.ENC_MENU]
+a_gpio = 3
+b_gpio = 4
+push = "ENC_MENU_PUSH"
+
+[buttons.BTN_BACK]
+expander = "AW9523_PA7"
+
+[buttons.ENC_VOL_PUSH]
+expander = "AW9523_PB1"
+
+[buttons.ENC_MENU_PUSH]
+expander = "AW9523_PB4"

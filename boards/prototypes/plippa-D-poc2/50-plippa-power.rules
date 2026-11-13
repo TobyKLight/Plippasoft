@@ -1,0 +1,14 @@
+// PWRSW_01: let the Plippa player (User=plip, no logind session) request a clean power-off.
+// Scoped to the two login1 actions and to that one user; nothing else is granted.
+//
+// Install: sudo cp 50-plippa-power.rules /etc/polkit-1/rules.d/
+// polkitd picks it up immediately (no restart). Verify with
+//   pkcheck --action-id org.freedesktop.login1.power-off --process $pid
+// on a process running as plip: it must exit 0.
+polkit.addRule(function (action, subject) {
+    if (subject.user !== "plip") { return; }
+    if (action.id === "org.freedesktop.login1.power-off" ||
+        action.id === "org.freedesktop.login1.power-off-multiple-sessions") {
+        return polkit.Result.YES;
+    }
+});

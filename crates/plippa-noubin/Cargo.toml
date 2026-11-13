@@ -1,0 +1,19 @@
+[package]
+name = "plippa-noubin"
+version.workspace = true
+edition.workspace = true
+description = "Noubin standard: .noudata types, NDEF key extract/normalise, library paths, SQLite index"
+publish = false
+
+[dependencies]
+plippa-core = { workspace = true }
+rand = { workspace = true }
+rusqlite = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+unicode-normalization = "0.1"
+
+[dev-dependencies]
+rusqlite = { workspace = true }
+tempfile = "3"

@@ -1,0 +1,44 @@
+{
+  "_whatAmILookingAt": "This is a noudata file from the Noubin standard. See https://github.com/TobyKLight/Noubin",
+  "noudataVersion": "0.4.0",
+  "playableItemTitle": "Messy Album",
+  "futureRootField": {
+    "nested": true,
+    "why": "forward compat"
+  },
+  "releaseData": {
+    "credits": {
+      "releaseProfile": "brandNewProfileType",
+      "primaryArtists": [
+        {
+          "primaryArtistName": "Someone"
+        }
+      ]
+    },
+    "releasePlatforms": [
+      {
+        "platformName": "Bandcamp",
+        "platformType": "totallyNewStoreKind",
+        "platformURL": "https://example.com/buy"
+      }
+    ]
+  },
+  "mediaList": [
+    {
+      "localFilePaths": [
+        "01 - Intro.flac",
+        "01 - Intro.mp3"
+      ],
+      "mediaTitle": "Intro",
+      "unknownItemField": 123,
+      "musicalData": {
+        "BPM": 120,
+        "futureMetric": "blue"
+      }
+    }
+  ],
+  "localPlaybackData": {
+    "shuffle": false,
+    "unknownPlaybackFlag": true
+  }
+}

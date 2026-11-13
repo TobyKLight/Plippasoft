@@ -1,0 +1,23 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "BandcampServer",
+    "serverVersion": "1.0",
+    "openSubsonic": true,
+    "albumList2": {
+      "album": [
+        {
+          "artist": "Another Fixture",
+          "id": "a:1000000004",
+          "name": "Fixture Album Four",
+          "duration": 640,
+          "playCount": 0,
+          "songCount": 3,
+          "coverArt": "ca:3000000004",
+          "created": "21 Aug 2026 00:00:00 GMT"
+        }
+      ]
+    }
+  }
+}
