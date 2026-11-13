@@ -6,7 +6,7 @@
 
 ## 0. Context
 
-**Plippa** is a media player that plays music from a USB stick and is controlled by tapping NFC tags. It is made and sold by Now We Make UG. **Plippasoft** is the open source software that runs it, published at the repository above under the Apache-2.0 licence in `LICENCE.md`.
+**Plippa** is a media player that can be controlled by tapping NFC tags. It is made and sold by Now We Make UG. **Plippasoft** is the open source software that runs it, published at the repository above under the Apache-2.0 licence in `LICENCE.md`.
 
 That software licence covers the software only. Separately from the software, Now We Make UG owns the **Plippa Branding**: the name "Plippa", the logo, the product design, the UI design and the UI sounds. This document sets out when you may use the Plippa Branding.
 
@@ -14,7 +14,7 @@ That software licence covers the software only. Separately from the software, No
 
 - Use, modify and sell Plippasoft as you like under `LICENCE.md`.
 - Building or running a Plippa for **personal, non-commercial use**: you may call it Plippa and use the branding, as long as you follow Section 5 when you share it.
-- Making **any commercial product** (selling it, or using the name to promote or support a sale): you must use your own name, design, logo, UI design and UI sounds. Do not use the Plippa Branding or anything confusingly similar.
+- Making **any commercial product** (selling it, or using the name to promote or support a sale): you must use your own name, design, logo, UI design and UI sounds. Do not use the Plippa Branding or anything confusingly similar, except for truthfully saying it's running or based on Plippasoft (see section 6).
 
 ## 1. Intellectual Property and Pending Trademarks
 
@@ -41,9 +41,9 @@ The restriction in Section 3 applies to commercial use only. For personal, non-c
 This section applies if you publish or share a fork of Plippasoft, a modified version, or your own hardware design (boards, cases, wiring, build guides) for a Plippa.
 
 1. **You may keep the name.** If it is for personal, non-commercial use, you may call your fork or hardware "Plippa" (or "Plippa-compatible", "Plippa build", and so on) and keep the Plippa Branding, including `assets/plippaSFX/`.
-2. **You must include this document.** Keep a copy of this file, unmodified, in the root of your repository (or in your distribution), and link to it from your README, so that everyone who finds your fork can see that the Plippa Branding may not be used commercially. If you remove the Plippa Branding entirely (name, logo and `assets/plippaSFX/`), you do not need to include it.
+2. **You must include this document.** If you wish to keep the branding keep a copy of this file, unmodified, in the root of your repository (or in your distribution), and link to it from your README, so that everyone who finds your fork can see that the Plippa Branding may not be used commercially. If you remove the Plippa Branding entirely (name, logo and `assets/plippaSFX/`), you do not need to include it.
 3. **Say it is unofficial.** State plainly that your fork or hardware is not the official Plippa and is not endorsed by Now We Make UG, and link back to <https://github.com/TobyKLight/Plippasoft>.
-4. **It stays non-commercial.** Anyone who receives your fork or hardware design inherits these terms. They may not sell a product under the Plippa Branding, and neither may you. A commercial product built from your fork or design needs its own branding (Section 3).
+4. **It stays non-commercial.** Anyone who receives your fork or hardware design inherits these terms. They may not sell a product under the Plippa Branding, and neither may you. A commercial product built from your fork or design needs its own branding (Section 3). This is why it's important this file is included in forks and related repos that keep the branding. 
 
 ## 6. Saying Your Player Runs Plippasoft
 
