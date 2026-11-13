@@ -198,6 +198,14 @@ impl NfcDevice for Pn532Nfc {
                 return Err(NfcError::ReadOnly);
             }
         }
+        // A tag that already carries a link is never overwritten (read on the same tag, right
+        // before the write, so nothing can change in between).
+        if let Ok(existing) = self.read_full_ndef() {
+            if plippa_noubin::first_record_is_uri_key(&existing) {
+                return Err(NfcError::HasLink);
+            }
+        }
+        let active = self.active.as_ref().ok_or(NfcError::NoTag)?;
         let tlv = plippa_noubin::wrap_type2_ndef_tlv(ndef_message);
         if tlv.len() > active.capacity {
             return Err(NfcError::CapacityExceeded {

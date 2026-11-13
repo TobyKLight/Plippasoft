@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # MVP_09 multi-process IPC smoke (no hardware).
-# Run from Plippa_PreRelease after building the three bins:
+# Run from Plippasoft after building the three bins:
 #
 #   export CARGO_BUILD_JOBS=1
 #   cargo build -p plippa-engine

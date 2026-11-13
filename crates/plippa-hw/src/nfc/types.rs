@@ -33,6 +33,8 @@ pub enum NfcEvent {
 
 /// Display text of [`NfcError::ReadOnly`] (stringly-typed across the I2C service channel).
 pub const TAG_READ_ONLY_MSG: &str = "tag is read-only (locked)";
+/// The tag already carries a link (URI record): association keeps it instead of overwriting.
+pub const TAG_HAS_LINK_MSG: &str = "tag already carries a link (kept, not overwritten)";
 
 /// NFC hardware / mock errors.
 #[derive(Debug, Error)]
@@ -47,6 +49,10 @@ pub enum NfcError {
     /// The message is matched by the UI to fall back to the locked-tag associate path.
     #[error("{}", TAG_READ_ONLY_MSG)]
     ReadOnly,
+    /// The tag is rewritable but its first record is a link (URI): never overwritten. The
+    /// message is matched by the UI, which then binds the existing key like a locked tag.
+    #[error("{}", TAG_HAS_LINK_MSG)]
+    HasLink,
     #[error("tag NDEF capacity unknown")]
     CapacityUnknown,
     #[error("NDEF payload does not fit tag capacity ({need} > {have})")]

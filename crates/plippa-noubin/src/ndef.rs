@@ -12,6 +12,28 @@ pub fn extract_noubin_key(data: &[u8]) -> Result<String, NdefError> {
     first_uri_or_text_key(message)
 }
 
+/// True when the first URI/Text record of `data` is a non-blank URI (a link).
+///
+/// A player keeps such a tag as it is when associating (the link is the tag's Noubin Key, often
+/// an artist's Public Noubin), exactly as it does for a locked tag. A first Text record (a
+/// Local Noubin Key), a blank tag or unreadable data is not a link.
+pub fn first_record_is_uri_key(data: &[u8]) -> bool {
+    let Ok(message) = locate_ndef_message(data) else {
+        return false;
+    };
+    let found = walk_records(message, |record| {
+        if record.tnf != 0x01 {
+            return None;
+        }
+        match record.record_type {
+            b"U" => Some(parse_uri_payload(record.payload).is_ok_and(|u| !u.trim().is_empty())),
+            b"T" => Some(false),
+            _ => None,
+        }
+    });
+    matches!(found, Ok(Some(true)))
+}
+
 /// BCS_07: every URI record of the tag, in tag order, without duplicates.
 ///
 /// The tap flow needs the platform links the tag declares; reading them here means no

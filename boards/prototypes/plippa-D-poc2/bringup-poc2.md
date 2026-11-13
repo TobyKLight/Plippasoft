@@ -20,8 +20,8 @@ ls /media/plip/
 
 ```bash
 export CARGO_BUILD_JOBS=1
-export CARGO_TARGET_DIR=~/projects/Plippa_PreRelease/target
-cd ~/projects/Plippa_PreRelease
+export CARGO_TARGET_DIR=~/projects/Plippasoft/target
+cd ~/projects/Plippasoft
 
 # One package at a time on 1GB RAM (avoid thrash):
 cargo build -p plippa-server

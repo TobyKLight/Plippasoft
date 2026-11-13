@@ -32,7 +32,7 @@ PASS_FILE="$CONF_DIR/password"
 
 PI_HOST="${PI_HOST:-192.168.0.235}"
 PI_USER="${PI_USER:-plip}"
-PI_DIR="${PI_DIR:-/home/$PI_USER/projects/Plippa_PreRelease}"
+PI_DIR="${PI_DIR:-/home/$PI_USER/projects/Plippasoft}"
 PROFILE="${PROFILE:-release}"                # must match ExecStart in the Pi's unit (the drop-in:
                                              # plippa.service.d/profile.conf -> target/release/)
 SYSROOT="${SYSROOT:-$CONF_DIR/sysroot}"
@@ -244,10 +244,14 @@ cmd_push() {
     pi "test -x '$PI_DIR/target/$PROFILE/$b'" || { echo "installed check: $b is missing or not executable on the Pi"; exit 1; }
   done
   echo "installed: ${BINS[*]}"
-  # The engine loads its board profile from the checkout, not the binary: push the values.
+  # The engine loads its board profile and the UI sounds from $PI_DIR (PLIPPA_ROOT), not from
+  # the binary: push them, so a Pi with no checkout (a fresh $PI_DIR) works.
+  pi "mkdir -p '$PI_DIR/boards/prototypes/plippa-D-poc2/config' '$PI_DIR/assets/plippaSFX'"
   rsync -avz -e "ssh ${SSH_OPTS[*]}" \
     "$ROOT/boards/prototypes/plippa-D-poc2/config/board.toml" \
     "$PI_USER@$PI_HOST:$PI_DIR/boards/prototypes/plippa-D-poc2/config/"
+  rsync -avz --delete -e "ssh ${SSH_OPTS[*]}" \
+    "$ROOT/assets/plippaSFX/" "$PI_USER@$PI_HOST:$PI_DIR/assets/plippaSFX/"
   # Capability discipline (SYS-02): the LED helper alone holds CAP_SYS_RAWIO. rsync rewrites the
   # binary and drops the capability, so it is re-applied on every push and then verified; the UI
   # is stripped once so a capability left by an older deploy cannot linger.

@@ -28,7 +28,7 @@
 
 [Unit]
 Description=Plippa Noubin player (engine + UI + server + LED helper)
-Documentation=file:///home/plip/projects/Plippa_PreRelease/boards/prototypes/plippa-D-poc2/boardSetup.md
+Documentation=file:///home/plip/projects/Plippasoft/boards/prototypes/plippa-D-poc2/boardSetup.md
 After=network-online.target sound.target
 Wants=network-online.target
 # 5 starts in 300 s, then the unit stays failed (no StartLimitAction).
@@ -47,12 +47,12 @@ NotifyAccess=main
 WatchdogSec=30
 User=plip
 Group=plip
-WorkingDirectory=/home/plip/projects/Plippa_PreRelease
+WorkingDirectory=/home/plip/projects/Plippasoft
 # Linger is enabled for plip so /run/user/1000 exists at boot.
 Environment=XDG_RUNTIME_DIR=/run/user/1000
 Environment=HOME=/home/plip
 Environment=USER=plip
-Environment=PLIPPA_ROOT=/home/plip/projects/Plippa_PreRelease
+Environment=PLIPPA_ROOT=/home/plip/projects/Plippasoft
 Environment=PLIPPA_BOARD=plippa-D-poc2
 Environment=PLIPPA_SINK=pulse
 Environment=PLIPPA_UI_BACKEND=poc2
@@ -74,7 +74,7 @@ Environment=PLIPPA_POWEROFF=1
 # binaries. plippa-leds is the only one carrying a file capability (cap_sys_rawio+ep, set and
 # verified by scripts/deploy.sh); never add NoNewPrivileges here, it drops that capability.
 # The binaries stay in the plip-owned tree on purpose: they run as plip, not root.
-ExecStart=/home/plip/projects/Plippa_PreRelease/target/release/plippa --board=plippa-D-poc2 --backend=poc2 --sink=pulse
+ExecStart=/home/plip/projects/Plippasoft/target/release/plippa --board=plippa-D-poc2 --backend=poc2 --sink=pulse
 # Abnormal exits restart (see Supervision above); a deliberate exit 0 does not.
 Restart=on-failure
 RestartSec=3

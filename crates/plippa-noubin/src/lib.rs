@@ -54,7 +54,7 @@ pub use json_guard::{
     MAX_JSON_ELEMENTS,
 };
 pub use keygen::{generate_local_noubin_key, KeyGenError, LocalKeyParams};
-pub use ndef::{extract_noubin_key, extract_uri_records};
+pub use ndef::{extract_noubin_key, extract_uri_records, first_record_is_uri_key};
 pub use ndef_encode::{
     encode_text_record, encode_uri_record, max_text_key_bytes_type2, max_text_key_bytes_type4,
     wrap_type2_ndef_tlv, DEFAULT_TEXT_LANG,

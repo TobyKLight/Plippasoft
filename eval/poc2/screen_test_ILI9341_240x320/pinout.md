@@ -38,7 +38,7 @@ ls -l /dev/spidev0.0
 | BL | GPIO 16 high |
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_screen_test_ILI9341_240x320
 sudo ./target/release/poc2_screen_test_ILI9341_240x320
 ```

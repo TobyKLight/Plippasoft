@@ -159,8 +159,8 @@ scripts/deploy.sh            # build + push + setcap the helper + install-root +
 After a push (rsync rewrites the binary, which drops the capability) check:
 
 ```bash
-getcap ~/projects/Plippa_PreRelease/target/release/plippa-leds   # cap_sys_rawio=ep
-getcap ~/projects/Plippa_PreRelease/target/release/plippa-ui     # (nothing)
+getcap ~/projects/Plippasoft/target/release/plippa-leds   # cap_sys_rawio=ep
+getcap ~/projects/Plippasoft/target/release/plippa-ui     # (nothing)
 grep CapEff /proc/$(pidof plippa-leds)/status                    # bit 17 set
 grep CapEff /proc/$(pidof plippa-ui)/status                      # bit 17 clear
 stat -c '%a %U:%G %n' /dev/mem                                   # 660 root:gpio
@@ -263,8 +263,8 @@ On 1 GiB RAM, one package at a time:
 
 ```bash
 export CARGO_BUILD_JOBS=1
-export CARGO_TARGET_DIR=~/projects/Plippa_PreRelease/target
-cd ~/projects/Plippa_PreRelease
+export CARGO_TARGET_DIR=~/projects/Plippasoft/target
+cd ~/projects/Plippasoft
 
 cargo build -p plippa-server
 cargo build -p plippa-engine --features pulse
@@ -332,7 +332,7 @@ Boots `plippa` (engine + UI + server) in the user session. Unit file:
 
 ### Prerequisites
 
-1. Binaries built under `~/projects/Plippa_PreRelease/target/release/` (the unit's `ExecStart`; a debug build needs the drop-in described in the README "Build profile"; see **Build and run** above).
+1. Binaries built under `~/projects/Plippasoft/target/release/` (the unit's `ExecStart`; a debug build needs the drop-in described in the README "Build profile"; see **Build and run** above).
 2. After every `plippa-leds` rebuild: `sudo setcap cap_sys_rawio+ep …/plippa-leds` (and
    `sudo setcap -r …/plippa-ui`); `scripts/deploy.sh push` does both and verifies them
 3. Device audio files installed (see **Audio (user session)** above).
@@ -444,8 +444,8 @@ sudo systemctl reset-failed plippa.service 2>/dev/null || true
 
 ```bash
 # rebuild as usual (CARGO_BUILD_JOBS=1), then:
-sudo setcap cap_sys_rawio+ep ~/projects/Plippa_PreRelease/target/debug/plippa-leds
-sudo setcap -r ~/projects/Plippa_PreRelease/target/debug/plippa-ui 2>/dev/null || true
+sudo setcap cap_sys_rawio+ep ~/projects/Plippasoft/target/debug/plippa-leds
+sudo setcap -r ~/projects/Plippasoft/target/debug/plippa-ui 2>/dev/null || true
 sudo systemctl restart plippa.service
 journalctl -u plippa.service -f
 ```

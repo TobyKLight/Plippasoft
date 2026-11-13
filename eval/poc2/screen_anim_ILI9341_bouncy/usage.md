@@ -15,7 +15,7 @@ With `--leds` it also runs the [`led_test`](../led_test/src/main.rs) WS2811 anim
 ## Build
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_screen_anim_ILI9341_bouncy
 ```
 
@@ -27,7 +27,7 @@ cargo build --release -p poc2_screen_anim_ILI9341_bouncy
 Defaults: **240×320 native → 320×240 landscape, rot 90 + mirrored** (same as `plippa-ui` / `board.toml`), SPI mode 0 + CE0, SPI 40 MHz.
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 sudo ./target/release/poc2_screen_anim_ILI9341_bouncy
 ```
 

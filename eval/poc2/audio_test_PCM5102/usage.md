@@ -8,14 +8,14 @@ This crate is part of the shared Cargo workspace at the repo root (one `target/`
 directory for all mini-projects).
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_audio_test_PCM5102
 ```
 
 ## Run
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 ./target/release/poc2_audio_test_PCM5102
 
 # optional: force a specific ALSA card index (from `aplay -l`)

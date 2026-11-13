@@ -27,7 +27,7 @@ GPIO 12/13 are used instead of GPIO 18 (I2S BCK) so LED timing does not conflict
 ## Run
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_led_test
 sudo ./target/release/poc2_led_test
 ```

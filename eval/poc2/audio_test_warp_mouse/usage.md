@@ -33,14 +33,14 @@ This crate is part of the shared Cargo workspace at the repo root (one `target/`
 directory for all mini-projects).
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_audio_test_warp_mouse
 ```
 
 ## Quick test (repo example track)
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 ./target/release/poc2_audio_test_warp_mouse --verbose \
   "assets/testMedia/MP3 V0/Bogan Mongrel - Grooves For Machines To Study - 02 Beat For Machines To Study.mp3"
 ```

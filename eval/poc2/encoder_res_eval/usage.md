@@ -28,7 +28,7 @@ Interactive eval: is SWE1’s **18-detent** encoder fine enough for subtle 0–1
 Prefer a single-job build (`CARGO_BUILD_JOBS=1`) on a 1 GB board.
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 export CARGO_BUILD_JOBS=1
 cargo build --release -p poc2_encoder_res_eval
 

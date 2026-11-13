@@ -11,7 +11,7 @@ ILI9341 **240×320** SPI display hardware test for POC2 (hardware CS on CE0, bac
 ## Build
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_screen_test_ILI9341_240x320
 ```
 
@@ -20,7 +20,7 @@ cargo build --release -p poc2_screen_test_ILI9341_240x320
 Defaults: **240×320, rot 0, offset (0,0), RGB, inversion off, SPI mode 0 + CE0**.
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 sudo ./target/release/poc2_screen_test_ILI9341_240x320
 ```
 

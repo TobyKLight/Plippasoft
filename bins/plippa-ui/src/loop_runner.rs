@@ -22,7 +22,7 @@ use crate::sys::SysProviders;
 use crate::wifi::WifiBackend;
 use plippa_hw::{
     FakeClock, MockNfc, MockTag, NfcDevice, NfcError, NfcEvent, NfcSession, PollClock,
-    MIN_POLL_INTERVAL, TAG_READ_ONLY_MSG,
+    MIN_POLL_INTERVAL, TAG_HAS_LINK_MSG, TAG_READ_ONLY_MSG,
 };
 use plippa_ipc_proto::{
     resolve_paths, AssociateResponse, IpcConnection, IpcMessage,
@@ -1324,7 +1324,11 @@ fn try_associate_write_mock(
             verify_written_key(app, backend, state, library, after.as_deref());
         }
         Err(NfcError::ReadOnly) => {
-            finish_associate_locked(app, backend, state, library, before.as_deref())
+            finish_associate_locked(app, backend, state, library, before.as_deref(), false)
+        }
+        // A link on the tag is kept exactly like a locked tag's key.
+        Err(NfcError::HasLink) => {
+            finish_associate_locked(app, backend, state, library, before.as_deref(), true)
         }
         Err(e) => {
             app.push_outgoing(UiOutgoing::Ipc(IpcMessage::AssociateResponse(
@@ -1389,12 +1393,16 @@ fn usable_key_from_ndef(ndef: &[u8]) -> Option<(String, String)> {
 /// NB_06 locked-tag path: the tag refused the write, so bind the key it already carries
 /// (`tag_locked` tells the server to apply move semantics). A locked tag with no readable
 /// key fails with a clear message and nothing is modified.
+///
+/// Also the path for a rewritable tag that already carries a link (`link_kept`): the device
+/// refused to overwrite it, so the link is the key, exactly as for a locked tag.
 fn finish_associate_locked(
     app: &mut UiApp,
     backend: &mut NfcBackend,
     state: &mut LoopState,
     library: &mut Option<LibrarySource>,
     ndef: Option<&[u8]>,
+    link_kept: bool,
 ) {
     let Some(mut pending) = state.pending_associate.clone() else {
         return;
@@ -1412,22 +1420,42 @@ fn finish_associate_locked(
         app.model.banner = Some(banner.into());
     };
     if pending.write_noudata_locally {
-        fail(
-            app,
-            state,
-            "This tag is locked. Associate it from the web portal (\"use the key already on the tag\").",
-            "Tag is locked",
-        );
+        if link_kept {
+            fail(
+                app,
+                state,
+                "This tag already carries a link, which is never overwritten. Associate it from \
+                 the web portal (\"use the key already on the tag\").",
+                "Tag has a link",
+            );
+        } else {
+            fail(
+                app,
+                state,
+                "This tag is locked. Associate it from the web portal (\"use the key already on the tag\").",
+                "Tag is locked",
+            );
+        }
         return;
     }
     let Some((key, _)) = ndef.and_then(usable_key_from_ndef) else {
-        fail(
-            app,
-            state,
-            "This tag is locked (read-only) and has no readable Noubin key, so it cannot be \
-             associated. Nothing was changed.",
-            "Locked tag has no key",
-        );
+        if link_kept {
+            fail(
+                app,
+                state,
+                "The link on this tag could not be read. Hold the tag steady and try again. \
+                 Nothing was changed.",
+                "Tag link unreadable",
+            );
+        } else {
+            fail(
+                app,
+                state,
+                "This tag is locked (read-only) and has no readable Noubin key, so it cannot be \
+                 associated. Nothing was changed.",
+                "Locked tag has no key",
+            );
+        }
         return;
     };
     pending.noubin_key = key;
@@ -1508,9 +1536,10 @@ fn handle_channel_write_result(
     if error.as_deref() == Some("no tag in field") {
         return;
     }
-    if error.as_deref() == Some(TAG_READ_ONLY_MSG) {
+    let locked = error.as_deref() == Some(TAG_READ_ONLY_MSG);
+    if locked || error.as_deref() == Some(TAG_HAS_LINK_MSG) {
         let stash = state.last_read_ndef.clone();
-        finish_associate_locked(app, backend, state, library, stash.as_deref());
+        finish_associate_locked(app, backend, state, library, stash.as_deref(), !locked);
         return;
     }
     app.push_outgoing(UiOutgoing::Ipc(IpcMessage::AssociateResponse(
@@ -2869,6 +2898,18 @@ mod tests {
         assert!(r.tag_locked, "server must apply move semantics");
         assert_eq!(r.noubin_key.as_deref(), Some("Fixed.noubin.LOCK1"));
         assert_eq!(r.noubin_key_normalised.as_deref(), Some("fixed.noubin.lock1"));
+        assert_eq!(r.previous_key, None);
+    }
+
+    #[test]
+    fn associate_rewritable_tag_with_a_link_keeps_the_link_and_binds_it() {
+        let link = "https://noubin.com/artist/release/";
+        let tag = MockTag::blank_type2(vec![6], 144)
+            .with_ndef_message(plippa_noubin::encode_uri_record(link).unwrap());
+        let r = associate_against(tag);
+        assert!(r.ok, "{r:?}");
+        assert!(r.tag_locked, "server must apply move semantics, as for a locked tag");
+        assert_eq!(r.noubin_key.as_deref(), Some(link));
         assert_eq!(r.previous_key, None);
     }
 

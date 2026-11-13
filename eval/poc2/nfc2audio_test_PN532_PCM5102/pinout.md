@@ -75,7 +75,7 @@ Confirm `aplay -l` lists `sndrpihifiberry`. Override with `--card-index N` if au
 Add your user to the `i2c` group (log out/in) to avoid sudo, or run with sudo:
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_nfc2audio_test_PN532_PCM5102
 sudo ./target/release/poc2_nfc2audio_test_PN532_PCM5102 --media-dir "$MEDIA_DIR"
 ```

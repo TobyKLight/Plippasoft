@@ -48,7 +48,7 @@ Expander: SDA/SCL hubs, **RST = GPIO22**, default address **0x58**. Contacts are
 ## Run
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_ui_test
 sudo ./target/release/poc2_ui_test
 ```

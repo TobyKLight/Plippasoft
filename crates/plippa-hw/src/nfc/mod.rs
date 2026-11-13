@@ -17,4 +17,4 @@ pub use poll::{
 };
 pub use session::NfcSession;
 pub use traits::NfcDevice;
-pub use types::{NfcError, NfcEvent, TagInfo, TagType, TAG_READ_ONLY_MSG};
+pub use types::{NfcError, NfcEvent, TagInfo, TagType, TAG_HAS_LINK_MSG, TAG_READ_ONLY_MSG};

@@ -30,7 +30,7 @@ Internal pull-ups via `pinctrl` at startup. Needs UART console off (SWE3 A on GP
 ## Run
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_encoder_res_eval
 sudo ./target/release/poc2_encoder_res_eval
 ```

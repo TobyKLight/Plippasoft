@@ -12,7 +12,7 @@ Steps through each LED on the **front** and **top** WS2811 strips (GRB colour or
 ## Build
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_led_test
 ```
 
@@ -28,7 +28,7 @@ cargo build --release -p poc2_led_test
 Defaults: **33** front LEDs, **30** top LEDs, **30%** brightness, **30 fps** (~33 ms per step).
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 sudo ./target/release/poc2_led_test
 ```
 

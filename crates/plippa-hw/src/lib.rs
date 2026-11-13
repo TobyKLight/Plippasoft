@@ -16,7 +16,8 @@ pub use accessory::{
 pub use nfc::{
     associate_playable_with_tag, AssociateError, AssociateParams, AssociateResult, FakeClock,
     MockNfc, MockTag, NfcDevice, NfcError, NfcEvent, NfcSession, PollClock, PollScheduler,
-    SteadyClock, TagInfo, TagType, MIN_POLL_HZ, MIN_POLL_INTERVAL, TAG_READ_ONLY_MSG,
+    SteadyClock, TagInfo, TagType, MIN_POLL_HZ, MIN_POLL_INTERVAL, TAG_HAS_LINK_MSG,
+    TAG_READ_ONLY_MSG,
 };
 
 #[cfg(feature = "pn532")]

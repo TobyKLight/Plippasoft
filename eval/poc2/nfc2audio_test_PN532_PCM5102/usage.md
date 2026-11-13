@@ -43,14 +43,14 @@ This crate is part of the shared Cargo workspace at the repo root (one `target/`
 directory for all mini-projects).
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_nfc2audio_test_PN532_PCM5102
 ```
 
 ## Run
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 
 # Verify hardware
 sudo i2cdetect -y 1          # PN532 at 24

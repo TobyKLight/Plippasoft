@@ -135,6 +135,9 @@ impl NfcDevice for MockNfc {
         if t.locked {
             return Err(NfcError::ReadOnly);
         }
+        if plippa_noubin::first_record_is_uri_key(&t.ndef_message) {
+            return Err(NfcError::HasLink);
+        }
         let stored_len = match t.tag_type {
             TagType::Type2 => wrap_type2_ndef_tlv(ndef_message).len(),
             TagType::Type4 => ndef_message.len(),

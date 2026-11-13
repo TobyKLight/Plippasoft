@@ -59,7 +59,7 @@ If communication fails repeatedly:
 Build as your user, then run the binary as root:
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_nfc_test_PN532
 sudo ./target/release/poc2_nfc_test_PN532
 ```

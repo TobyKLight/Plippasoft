@@ -10,14 +10,14 @@ This crate is part of the shared Cargo workspace at the repo root (one `target/`
 directory for all mini-projects).
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_mouse_test
 ```
 
 ## Run
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 ./target/release/poc2_mouse_test
 ```
 

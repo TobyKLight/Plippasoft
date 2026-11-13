@@ -37,7 +37,7 @@ card 2: sndrpihifiberry [snd_rpi_hifiberry_dac], device 0: HifiBerry DAC HiFi pc
 ## Quick self-test
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_audio_test_PCM5102
 ./target/release/poc2_audio_test_PCM5102
 ```

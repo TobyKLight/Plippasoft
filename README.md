@@ -10,7 +10,7 @@ It powers the [Plippa media player](https://nowwemake.com/plippa)
 
 **Overall if you're an expert in wiring up RPIs then I think you could do a lot with Plippasoft already. But it's not in any shape for novices yet.** 
 
-Today the Plippa software is only tested running on my initial prototype target, a RPI CM4 (1GB ram), with a specific hardware loadout, details are here `Plippa_PreRelease\boards\prototypes\plippa-D-poc2` 
+Today the Plippa software is only tested running on my initial prototype target, a RPI CM4 (1GB ram), with a specific hardware loadout, details are here [`boards/prototypes/plippa-D-poc2`](boards/prototypes/plippa-D-poc2) 
 - It's not generalised as a linux desktop app 
 - UI is only designed for a 320x240px screen 
 - There is the start of a hardware abstraction layer but it's not complete.
@@ -19,7 +19,7 @@ Today the Plippa software is only tested running on my initial prototype target,
 - So far it's developed as if the RPI is dedicated to only this app. 
 - Security wise neither the app or deploy process is particularly hardened so take care. I develop on a dedicated linux VM, connecting to an RPI on a LAN behind a NAT/firewall that isn't allowing incoming connections from the web.
 
-Beyond what's in `Plippa_PreRelease\boards\prototypes\plippa-D-poc2` the hardware design (e.g. laser cut files, kicad files) is not yet open source. The reason is the current hardware is actually pretty difficult to put together right now, quite gnarly and with a couple of bugs. I do plan to publish a maker friendly hardware design of a Plippa at some point. In the meantime though there's enough info here for experts to design their own cases and boards and wiring harnesses (that's the fun part anyway).
+Beyond what's in [`boards/prototypes/plippa-D-poc2`](boards/prototypes/plippa-D-poc2) the hardware design (e.g. laser cut files, kicad files) is not yet open source. The reason is the current hardware is actually pretty difficult to put together right now, quite gnarly and with a couple of bugs. I do plan to publish a maker friendly hardware design of a Plippa at some point. In the meantime though there's enough info here for experts to design their own cases and boards and wiring harnesses (that's the fun part anyway).
 
 ## Features 
 
@@ -99,7 +99,7 @@ The CM4 is too small to compile this workspace, so [`scripts/deploy.sh`](scripts
    sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libclang-dev
    rustup target add aarch64-unknown-linux-gnu
    ```
-3. Copy [`scripts/deploy/deploy.env.example`](scripts/deploy/deploy.env.example) to `~/.config/plippa-deploy/deploy.env` and set `PI_HOST` (and `PI_USER` / `PI_DIR` if you differ from the defaults: `plip`, `/home/plip/projects/Plippa_PreRelease`).
+3. Copy [`scripts/deploy/deploy.env.example`](scripts/deploy/deploy.env.example) to `~/.config/plippa-deploy/deploy.env` and set `PI_HOST` (and `PI_USER` / `PI_DIR` if you differ from the defaults: `plip`, `/home/plip/projects/Plippasoft`).
 4. Authenticate with an ssh key (recommended: `ssh-copy-id plip@<pi-host>`) or a password. `scripts/deploy.sh setup` prompts for the password, stores it in plain text at `~/.config/plippa-deploy/password` (mode 600, outside the repo), trusts the host key and syncs the Pi's libraries into `~/.config/plippa-deploy/sysroot` for linking. Use a password you don't use anywhere else. `sudo` on the Pi (setcap, service restart) still needs the password unless you configure passwordless sudo.
 5. Optional, only if you want to run the tests on this machine: `scripts/fetch-testmedia.sh` downloads the test audio (not stored in git) into `assets/testMedia/`.
 

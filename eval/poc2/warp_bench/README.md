@@ -40,14 +40,14 @@ sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libclang-dev python
 Then, from the repo root:
 
 ```bash
-cd ~/Plippa_PreRelease && git pull origin main
+cd ~/Plippasoft && git pull origin main
 PROFILE=release scripts/deploy.sh eval warp_bench
 ```
 
 This runs `cargo build --release --target aarch64-unknown-linux-gnu -p poc2_warp_bench --features pulse` with the same cross environment as `scripts/deploy.sh build` (sysroot of the Pi's libraries, `CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++`), then rsyncs **only that binary** to the Pi. It does **not** restart `plippa.service` and does not run `setcap`. The binary lands at:
 
 ```
-~/projects/Plippa_PreRelease/target/release/warp_bench      # on the Pi (PI_DIR/target/release)
+~/projects/Plippasoft/target/release/warp_bench      # on the Pi (PI_DIR/target/release)
 ```
 
 **Use a release build for every number.** The default profile of `scripts/deploy.sh` is `debug`; a debug warp_bench is 10-50x slower, `info` prints a DEBUG warning and `suggest` refuses to suggest anything from a debug run.
@@ -58,9 +58,9 @@ The C++ stretcher compiles on a 1 GB board, so build one job at a time and expec
 
 ```bash
 sudo apt install -y libpulse-dev pkg-config build-essential libclang-dev
-cd ~/projects/Plippa_PreRelease && git pull origin main
+cd ~/projects/Plippasoft && git pull origin main
 CARGO_BUILD_JOBS=1 cargo build --release -p poc2_warp_bench --features pulse
-# binary: ~/projects/Plippa_PreRelease/target/release/warp_bench
+# binary: ~/projects/Plippasoft/target/release/warp_bench
 ```
 
 Without `--features pulse` the app still builds and runs every measurement except `latency`, and the listening tests can only render to a file (`--out file.wav`).
@@ -108,7 +108,7 @@ Options are listed with `--help`. Common ones: `--report FILE` (where to append)
 ### 4.1 `info` (a few seconds)
 
 ```bash
-~/projects/Plippa_PreRelease/target/release/warp_bench info
+~/projects/Plippasoft/target/release/warp_bench info
 ```
 
 ```

@@ -291,3 +291,29 @@ fn blank_locked_tag_is_unwritable_and_unreadable() {
     ));
     assert!(nfc.read_full_ndef().is_err());
 }
+
+// --- A rewritable tag that carries a link is never overwritten ---------------------------
+
+#[test]
+fn rewritable_tag_with_a_link_is_not_overwritten() {
+    let link = plippa_noubin::encode_uri_record("https://noubin.com/a/b/").unwrap();
+    let mut nfc = MockNfc::new();
+    nfc.inject(MockTag::blank_type2(vec![9], 144).with_ndef_message(link.clone()));
+    nfc.poll().unwrap();
+    let msg = encode_text_record("new.noubin.XYZ", DEFAULT_TEXT_LANG).unwrap();
+    let err = nfc.write_first_ndef_record(&msg).unwrap_err();
+    assert!(matches!(err, NfcError::HasLink), "{err:?}");
+    assert_eq!(err.to_string(), plippa_hw::TAG_HAS_LINK_MSG);
+    assert_eq!(extract_noubin_key(&nfc.read_full_ndef().unwrap()).unwrap(), "https://noubin.com/a/b/");
+}
+
+#[test]
+fn rewritable_tag_with_a_text_key_is_still_overwritten() {
+    let old = encode_text_record("old.noubin.OLD", DEFAULT_TEXT_LANG).unwrap();
+    let mut nfc = MockNfc::new();
+    nfc.inject(MockTag::blank_type2(vec![10], 144).with_ndef_message(old));
+    nfc.poll().unwrap();
+    let msg = encode_text_record("new.noubin.XYZ", DEFAULT_TEXT_LANG).unwrap();
+    nfc.write_first_ndef_record(&msg).unwrap();
+    assert_eq!(extract_noubin_key(&nfc.read_full_ndef().unwrap()).unwrap(), "new.noubin.XYZ");
+}

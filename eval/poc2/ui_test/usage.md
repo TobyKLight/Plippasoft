@@ -12,7 +12,7 @@ Interactive hardware test for front rotary encoders (SWE1/3/4/5), front/top push
 ## Build
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_ui_test
 ```
 
@@ -21,7 +21,7 @@ cargo build --release -p poc2_ui_test
 Defaults: **30%** brightness, **20 ms** debounce, AW9523 on `/dev/i2c-1` @ **0x58**.
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 sudo ./target/release/poc2_ui_test
 ```
 

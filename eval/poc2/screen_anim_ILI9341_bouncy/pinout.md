@@ -22,7 +22,7 @@ Pi system prep: [`boards/prototypes/plippa-D-poc2/boardSetup.md`](../../../board
 ## Run
 
 ```bash
-cd ~/projects/Plippa_PreRelease
+cd ~/projects/Plippasoft
 cargo build --release -p poc2_screen_anim_ILI9341_bouncy
 sudo ./target/release/poc2_screen_anim_ILI9341_bouncy
 ```
