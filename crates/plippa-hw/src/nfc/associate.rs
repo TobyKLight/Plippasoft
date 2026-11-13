@@ -67,6 +67,7 @@ pub fn associate_playable_with_tag<D: NfcDevice>(
         let max_key = match info.tag_type {
             TagType::Type2 => max_text_key_bytes_type2(capacity, DEFAULT_TEXT_LANG),
             TagType::Type4 => max_text_key_bytes_type4(capacity, DEFAULT_TEXT_LANG),
+            TagType::NonNdef => return Err(NfcError::UnsupportedTag.into()),
         };
         if max_key == 0 {
             return Err(AssociateError::CapacityTooSmall);

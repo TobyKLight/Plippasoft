@@ -317,3 +317,57 @@ fn rewritable_tag_with_a_text_key_is_still_overwritten() {
     nfc.write_first_ndef_record(&msg).unwrap();
     assert_eq!(extract_noubin_key(&nfc.read_full_ndef().unwrap()).unwrap(), "new.noubin.XYZ");
 }
+
+// --- v0.5.2: UID Noubin Key for tags with no usable NDEF record (§1.18.1, §6.1) ----------
+
+fn poll_event(nfc: MockNfc) -> Vec<NfcEvent> {
+    let mut session = NfcSession::new(nfc, FakeClock { now: Duration::ZERO });
+    session.poll_once().unwrap()
+}
+
+#[test]
+fn a_non_ndef_tag_reports_its_uid_key() {
+    let mut nfc = MockNfc::new();
+    nfc.inject(MockTag::non_ndef(vec![0x1A, 0x2B, 0x3C, 0x4D]));
+    match poll_event(nfc).as_slice() {
+        [NfcEvent::UidTag { key, .. }] => assert_eq!(key.as_deref(), Ok("uid:1a2b3c4d")),
+        other => panic!("{other:?}"),
+    }
+}
+
+#[test]
+fn a_blank_tag_and_a_tag_without_a_text_or_uri_record_use_their_uid() {
+    let mut nfc = MockNfc::new();
+    nfc.inject(MockTag::blank_type2(vec![4, 0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6], 144));
+    assert!(matches!(
+        poll_event(nfc).as_slice(),
+        [NfcEvent::UidTag { key: Ok(k), .. }] if k == "uid:04a1b2c3d4e5f6"
+    ));
+    // An NDEF message whose only record is neither Text nor URI (here a MIME record).
+    let mime = vec![0xD2, 0x0A, 0x01, b't', b'e', b'x', b't', b'/', b'p', b'l', b'a', b'i', b'n', b'x'];
+    let mut nfc = MockNfc::new();
+    nfc.inject(MockTag::blank_type2(vec![1, 2, 3, 4, 5, 6, 7], 144).with_ndef_message(mime));
+    assert!(matches!(poll_event(nfc).as_slice(), [NfcEvent::UidTag { key: Ok(_), .. }]));
+}
+
+#[test]
+fn a_tag_with_an_ndef_key_never_falls_back_to_its_uid() {
+    let msg = encode_text_record("some.noubin.KEY", DEFAULT_TEXT_LANG).unwrap();
+    let mut nfc = MockNfc::new();
+    nfc.inject(MockTag::blank_type2(vec![1, 2, 3, 4, 5, 6, 7], 144).with_ndef_message(msg));
+    assert!(matches!(poll_event(nfc).as_slice(), [NfcEvent::ReadComplete { .. }]));
+}
+
+#[test]
+fn a_random_uid_is_refused_once_and_not_repeated() {
+    let mut nfc = MockNfc::new();
+    nfc.inject(MockTag::non_ndef(vec![0x08, 0x11, 0x22, 0x33]));
+    let mut session = NfcSession::new(nfc, FakeClock { now: Duration::ZERO });
+    let first = session.poll_once().unwrap();
+    assert!(matches!(
+        first.as_slice(),
+        [NfcEvent::UidTag { key: Err(plippa_noubin::UidKeyError::RandomUid), .. }]
+    ));
+    session.scheduler_mut().clock_mut().now = Duration::from_millis(200);
+    assert!(session.poll_once().unwrap().is_empty(), "the refusal is not repeated");
+}

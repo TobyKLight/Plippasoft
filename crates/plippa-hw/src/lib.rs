@@ -14,7 +14,8 @@ pub use accessory::{
     MAX_TRIES, RETRY_SPACING,
 };
 pub use nfc::{
-    associate_playable_with_tag, AssociateError, AssociateParams, AssociateResult, FakeClock,
+    associate_playable_with_tag, confirmed_uid_key, AssociateError, AssociateParams,
+    AssociateResult, FakeClock,
     MockNfc, MockTag, NfcDevice, NfcError, NfcEvent, NfcSession, PollClock, PollScheduler,
     SteadyClock, TagInfo, TagType, MIN_POLL_HZ, MIN_POLL_INTERVAL, TAG_HAS_LINK_MSG,
     TAG_READ_ONLY_MSG,

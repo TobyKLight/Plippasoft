@@ -61,7 +61,7 @@ use plippa_board::{ControlRole, LedRole};
 use plippa_core::{Capabilities, PlayableItemId, TransportState, Volume};
 use plippa_hw::NfcEvent;
 use plippa_ipc_proto::{
-    IpcMessage, PlaybackCommand, TapNdefPayload, UserNotice, NOTICE_LIBRARY_MISS, NOTICE_MEDIA_UNPLAYABLE,
+    IpcMessage, PlaybackCommand, TapKeyPayload, TapNdefPayload, UserNotice, NOTICE_LIBRARY_MISS, NOTICE_MEDIA_UNPLAYABLE,
     NOTICE_NO_FIXED_ORDER,
 };
 use plippa_core::{NowPlayingEntry, NowPlayingEntryKind};
@@ -4671,6 +4671,34 @@ impl UiApp {
                 })));
                 self.outgoing.push(UiOutgoing::TapFeedback { tap_id });
             }
+            // v0.5.2: no NDEF Text/URI record, so the tag UID is the key (`uid:<hex>`), tapped
+            // exactly like an NDEF key (the engine matches it against the library).
+            NfcEvent::UidTag { info, key } => match key {
+                Ok(key) => {
+                    self.tap_id = self.tap_id.saturating_add(1);
+                    let tap_id = self.tap_id;
+                    eprintln!("plippa-ui: tap #{tap_id} uid={:02x?} → {key}", info.uid);
+                    self.compositor.show_status(
+                        &format!("Playing …\n{}", truncate_popup_line(&key, 36)),
+                        self.now_ms,
+                    );
+                    self.outgoing.push(UiOutgoing::Ipc(IpcMessage::TapKey(TapKeyPayload {
+                        noubin_key: key,
+                        tap_id,
+                        already_normalised: false,
+                    })));
+                    self.outgoing.push(UiOutgoing::TapFeedback { tap_id });
+                }
+                Err(e) => {
+                    let why = match e {
+                        plippa_noubin::UidKeyError::RandomUid
+                        | plippa_noubin::UidKeyError::Unstable => "It shows a random ID",
+                        plippa_noubin::UidKeyError::BadLength => "No readable ID",
+                    };
+                    self.compositor
+                        .show_status(&format!("Tag not usable\n{why}"), self.now_ms);
+                }
+            },
             NfcEvent::TagRemoved { .. } => {}
         }
     }
@@ -7475,6 +7503,28 @@ mod tests {
             app.compositor.status().is_none(),
             "the miss popup must not cover the URL-access prompt"
         );
+    }
+
+    #[test]
+    fn a_uid_tag_taps_like_a_key_and_a_random_uid_does_not() {
+        use plippa_hw::{NfcEvent, TagInfo, TagType};
+        let info = TagInfo { uid: vec![1, 2, 3, 4], tag_type: TagType::NonNdef, ndef_capacity: None };
+        let mut app = UiApp::new(UiConfig::default());
+        app.handle_nfc_event(NfcEvent::UidTag { info: info.clone(), key: Ok("uid:01020304".into()) });
+        let sent: Vec<_> = app.take_outgoing();
+        assert!(sent.iter().any(|o| matches!(
+            o,
+            UiOutgoing::Ipc(IpcMessage::TapKey(k)) if k.noubin_key == "uid:01020304"
+        )));
+        assert!(sent.iter().any(|o| matches!(o, UiOutgoing::TapFeedback { .. })));
+
+        let mut app = UiApp::new(UiConfig::default());
+        app.handle_nfc_event(NfcEvent::UidTag {
+            info,
+            key: Err(plippa_noubin::UidKeyError::RandomUid),
+        });
+        assert!(app.take_outgoing().is_empty(), "a random UID never taps");
+        assert!(app.compositor.status().is_some(), "and says why");
     }
 
     #[test]

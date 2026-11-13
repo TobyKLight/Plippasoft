@@ -28,6 +28,17 @@ impl MockTag {
         }
     }
 
+    /// A tag with no readable or writable NDEF (e.g. MIFARE Classic): only the UID is usable.
+    pub fn non_ndef(uid: impl Into<Vec<u8>>) -> Self {
+        Self {
+            uid: uid.into(),
+            tag_type: TagType::NonNdef,
+            ndef_capacity: 0,
+            ndef_message: Vec::new(),
+            locked: false,
+        }
+    }
+
     pub fn blank_type4(uid: impl Into<Vec<u8>>, capacity: usize) -> Self {
         Self {
             uid: uid.into(),
@@ -126,12 +137,16 @@ impl NfcDevice for MockNfc {
         Ok(match t.tag_type {
             TagType::Type2 => wrap_type2_ndef_tlv(&t.ndef_message),
             TagType::Type4 => t.ndef_message.clone(),
+            TagType::NonNdef => return Err(NfcError::UnsupportedTag),
         })
     }
 
     fn write_first_ndef_record(&mut self, ndef_message: &[u8]) -> Result<(), NfcError> {
         let idx = self.selected.ok_or(NfcError::NoTag)?;
         let t = self.present.get_mut(idx).ok_or(NfcError::NoTag)?;
+        if t.tag_type == TagType::NonNdef {
+            return Err(NfcError::UnsupportedTag);
+        }
         if t.locked {
             return Err(NfcError::ReadOnly);
         }
@@ -140,7 +155,7 @@ impl NfcDevice for MockNfc {
         }
         let stored_len = match t.tag_type {
             TagType::Type2 => wrap_type2_ndef_tlv(ndef_message).len(),
-            TagType::Type4 => ndef_message.len(),
+            TagType::Type4 | TagType::NonNdef => ndef_message.len(),
         };
         if stored_len > t.ndef_capacity {
             return Err(NfcError::CapacityExceeded {

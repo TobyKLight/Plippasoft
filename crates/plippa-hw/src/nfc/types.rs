@@ -7,6 +7,9 @@ use thiserror::Error;
 pub enum TagType {
     Type2,
     Type4,
+    /// A tag with no NDEF application we can read or write here (e.g. MIFARE Classic, or
+    /// another non-NDEF chip). Only its UID is usable (§1.18.1).
+    NonNdef,
 }
 
 /// Snapshot of a tag currently in the field (after detection / full read).
@@ -26,6 +29,13 @@ pub enum NfcEvent {
         info: TagInfo,
         /// Raw bytes suitable for [`plippa_noubin::extract_noubin_key`] (message or Type 2 TLV).
         ndef: Vec<u8>,
+    },
+    /// The tag has no suitable NDEF Text/URI record, so its UID is the Noubin Key (§6.1 UID
+    /// fallback, §1.18.1). `key` is the `uid:<hex>` key, or why the UID cannot be used
+    /// (random UID, unstable between two activations, odd length).
+    UidTag {
+        info: TagInfo,
+        key: Result<String, plippa_noubin::UidKeyError>,
     },
     /// Tag left the field (optional; useful to clear UI “present” state).
     TagRemoved { uid: Vec<u8> },

@@ -15,6 +15,6 @@ pub use mock::{MockNfc, MockTag};
 pub use poll::{
     FakeClock, PollClock, PollScheduler, SteadyClock, MIN_POLL_HZ, MIN_POLL_INTERVAL,
 };
-pub use session::NfcSession;
+pub use session::{confirmed_uid_key, NfcSession};
 pub use traits::NfcDevice;
 pub use types::{NfcError, NfcEvent, TagInfo, TagType, TAG_HAS_LINK_MSG, TAG_READ_ONLY_MSG};

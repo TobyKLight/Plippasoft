@@ -3,6 +3,7 @@
 use super::poll::{PollClock, PollScheduler};
 use super::traits::NfcDevice;
 use super::types::{NfcError, NfcEvent, TagInfo};
+use plippa_noubin::{extract_noubin_key, uid_noubin_key, UidKeyError};
 
 /// Session layer over an [`NfcDevice`].
 ///
@@ -13,6 +14,28 @@ pub struct NfcSession<D: NfcDevice, C: PollClock> {
     scheduler: PollScheduler<C>,
     loaded_uid: Option<Vec<u8>>,
     last_uid: Option<Vec<u8>>,
+    /// A tag whose UID cannot be used (random / unstable) is reported once, then ignored until
+    /// the field is empty again (a random-UID tag shows a new UID every poll).
+    uid_refused: bool,
+}
+
+/// The `uid:<hex>` key of the tag in the field, confirmed by activating it a second time
+/// (§6.1: a UID that differs between two reads is a random UID and MUST be refused).
+///
+/// `Ok(None)` when the tag left the field before the second read (nothing to report).
+pub fn confirmed_uid_key<D: NfcDevice>(
+    device: &mut D,
+    info: &TagInfo,
+) -> Result<Option<Result<String, UidKeyError>>, NfcError> {
+    let key = match uid_noubin_key(&info.uid) {
+        Ok(key) => key,
+        Err(e) => return Ok(Some(Err(e))),
+    };
+    match device.poll()? {
+        None => Ok(None),
+        Some(again) if again.uid == info.uid => Ok(Some(Ok(key))),
+        Some(_) => Ok(Some(Err(UidKeyError::Unstable))),
+    }
 }
 
 impl<D: NfcDevice, C: PollClock> NfcSession<D, C> {
@@ -22,6 +45,7 @@ impl<D: NfcDevice, C: PollClock> NfcSession<D, C> {
             scheduler: PollScheduler::new(clock),
             loaded_uid: None,
             last_uid: None,
+            uid_refused: false,
         }
     }
 
@@ -62,12 +86,13 @@ impl<D: NfcDevice, C: PollClock> NfcSession<D, C> {
         let mut events = Vec::new();
         match self.device.poll()? {
             None => {
+                self.uid_refused = false;
                 if let Some(uid) = self.last_uid.take() {
                     events.push(NfcEvent::TagRemoved { uid });
                 }
             }
             Some(info) => {
-                if self.should_ignore(&info) {
+                if self.should_ignore(&info) || self.uid_refused {
                     self.last_uid = Some(info.uid);
                     return Ok(events);
                 }
@@ -79,19 +104,27 @@ impl<D: NfcDevice, C: PollClock> NfcSession<D, C> {
 
                 // §3.2: complete full read before clear feedback.
                 match self.device.read_full_ndef() {
-                    Ok(ndef) => {
+                    // A usable URI/Text record: the NDEF key (§6.1 phase 1).
+                    Ok(ndef) if extract_noubin_key(&ndef).is_ok() => {
                         self.last_uid = Some(info.uid.clone());
                         events.push(NfcEvent::ReadComplete { info, ndef });
                     }
-                    Err(NfcError::Ndef(plippa_noubin::NdefError::NoRecord)) => {
-                        // Blank / empty: still a completed read of “no record” — surface as error
-                        // to the caller by not emitting ReadComplete (associate path uses device
-                        // directly). Treat as present but no feedback ding for playback.
+                    // No suitable NDEF record (blank, another record type, or no NDEF at all):
+                    // the tag UID is the Noubin Key (§6.1 UID fallback, §1.18.1).
+                    Ok(_)
+                    | Err(NfcError::Ndef(_))
+                    | Err(NfcError::UnsupportedTag) => {
                         eprintln!(
-                            "plippa-hw: NFC tag uid={:02x?} present but no NDEF record",
+                            "plippa-hw: NFC tag uid={:02x?} has no NDEF Text/URI record — using its UID",
                             info.uid
                         );
-                        self.last_uid = Some(info.uid);
+                        self.last_uid = Some(info.uid.clone());
+                        if let Some(key) = confirmed_uid_key(&mut self.device, &info)? {
+                            if key.is_err() {
+                                self.uid_refused = true;
+                            }
+                            events.push(NfcEvent::UidTag { info, key });
+                        }
                     }
                     Err(e) => {
                         // Partial / lost mid-read: do not emit feedback; keep last_uid unset so

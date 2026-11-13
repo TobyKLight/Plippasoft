@@ -31,6 +31,9 @@ use plippa_noubin::{
     encode_text_record, extract_noubin_key, normalise_noubin_key, parse_noudata, LibraryRoot,
     LibraryWriter, DEFAULT_TEXT_LANG,
 };
+
+/// Display text of `NfcError::UnsupportedTag` (stringly-typed across the I²C service channel).
+const UNSUPPORTED_TAG_MSG: &str = "unsupported tag type";
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::path::Path;
@@ -180,6 +183,12 @@ pub struct LoopState {
     /// NB_06: NDEF of the tag last read completely (Channel backend); lets an associate
     /// learn the tag's previous key / fall back to reading a locked tag.
     pub last_read_ndef: Option<Vec<u8>>,
+    /// v0.5.2: `uid:<hex>` key of the tag in the field when it has no NDEF Text/URI record
+    /// (Channel backend); the key an associate binds when the tag cannot be written.
+    pub last_uid_key: Option<String>,
+    /// v0.5.2: the tag refused the write and no key could be read from it; the associate waits
+    /// for the tag's UID event instead of failing.
+    pub associate_unwritable: bool,
     pub next_local_request_id: u64,
     pub dirty: bool,
     pub sys_refresh_ms: u64,
@@ -224,6 +233,8 @@ impl Default for LoopState {
         Self {
             pending_associate: None,
             last_read_ndef: None,
+            last_uid_key: None,
+            associate_unwritable: false,
             next_local_request_id: 1,
             dirty: true,
             sys_refresh_ms: 1_000,
@@ -760,13 +771,19 @@ pub fn run_ui_loop(
                             match session.poll_once() {
                                 Ok(events) => {
                                     for ev in events {
-                                        if let NfcEvent::ReadComplete { info, .. } = &ev {
+                                        if let NfcEvent::ReadComplete { info, .. }
+                                        | NfcEvent::UidTag { info, key: Ok(_) } = &ev
+                                        {
                                             session.set_loaded(Some(info.uid.clone()));
                                         }
                                         if let NfcEvent::TagRemoved { .. } = &ev {
                                             session.set_loaded(None);
                                         }
-                                        if matches!(ev, NfcEvent::ReadComplete { .. }) {
+                                        if matches!(
+                                            ev,
+                                            NfcEvent::ReadComplete { .. }
+                                                | NfcEvent::UidTag { key: Ok(_), .. }
+                                        ) {
                                             note_accepted_tap(state, now_ms);
                                         }
                                         app.handle_nfc_event(ev);
@@ -802,10 +819,30 @@ pub fn run_ui_loop(
                                             c.set_loaded_uid(Some(info.uid.clone()));
                                         }
                                     }
+                                    if let NfcEvent::UidTag { info, key } = &ev {
+                                        state.last_uid_key = key.as_ref().ok().cloned();
+                                        if key.is_ok() {
+                                            if let NfcBackend::Channel(c) = backend {
+                                                c.set_loaded_uid(Some(info.uid.clone()));
+                                            }
+                                        }
+                                    }
                                     if let NfcEvent::TagRemoved { .. } = &ev {
                                         state.last_read_ndef = None;
+                                        state.last_uid_key = None;
                                         if let NfcBackend::Channel(c) = backend {
                                             c.set_loaded_uid(None);
+                                        }
+                                    }
+                                    if let NfcEvent::UidTag { key, .. } = &ev {
+                                        if state.pending_associate.is_some() {
+                                            // No tap while an associate is waiting for a tag.
+                                            let key = key.clone();
+                                            handle_uid_tag_for_associate(
+                                                app, backend, state, library, key,
+                                            );
+                                            state.dirty = true;
+                                            continue;
                                         }
                                     }
                                     let keep_read = matches!(
@@ -980,6 +1017,7 @@ fn handle_ipc_in(
                     "writes NFC"
                 }
             );
+            state.associate_unwritable = false;
             state.pending_associate = Some(PendingAssociate {
                 request_id: req.request_id,
                 playable_id: req.playable_id.as_u64() as i64,
@@ -1111,6 +1149,7 @@ fn capture_associate_selected(
                         .collect::<String>()
                         .to_ascii_lowercase()
                 );
+                state.associate_unwritable = false;
                 state.pending_associate = Some(PendingAssociate {
                     request_id,
                     playable_id,
@@ -1183,17 +1222,21 @@ fn try_associate_read_mock(
     let NfcBackend::Mock { session } = backend else {
         return;
     };
-    if session
-        .device_mut()
-        .poll()
-        .ok()
-        .and_then(|t| t)
-        .is_none()
-    {
+    let Some(info) = session.device_mut().poll().ok().and_then(|t| t) else {
         return;
-    }
+    };
     let ndef = match session.device_mut().read_full_ndef() {
-        Ok(b) => b,
+        Ok(b) if extract_noubin_key(&b).is_ok() => b,
+        // No NDEF Text/URI record: the tag UID is the key (v0.5.2).
+        Ok(_) | Err(NfcError::Ndef(_)) | Err(NfcError::UnsupportedTag) => {
+            let key = plippa_hw::confirmed_uid_key(session.device_mut(), &info)
+                .ok()
+                .flatten();
+            handle_uid_tag_for_associate(app, backend, state, library, key.unwrap_or(Err(
+                plippa_noubin::UidKeyError::Unstable,
+            )));
+            return;
+        }
         Err(e) => {
             let Some(pending) = state.pending_associate.clone() else {
                 return;
@@ -1277,19 +1320,13 @@ fn try_associate_write_mock(
         return;
     };
     // (write result, NDEF read before writing — the tag's previous key / locked fallback)
-    let (write_result, before) = {
+    let (write_result, before, uid) = {
         let NfcBackend::Mock { session } = backend else {
             return;
         };
-        if session
-            .device_mut()
-            .poll()
-            .ok()
-            .and_then(|t| t)
-            .is_none()
-        {
+        let Some(info) = session.device_mut().poll().ok().and_then(|t| t) else {
             return;
-        }
+        };
         let ndef = match encode_text_record(&pending.noubin_key, DEFAULT_TEXT_LANG) {
             Ok(b) => b,
             Err(e) => {
@@ -1309,7 +1346,18 @@ fn try_associate_write_mock(
             }
         };
         let before = session.device_mut().read_full_ndef().ok();
-        (session.device_mut().write_first_ndef_record(&ndef), before)
+        let result = session.device_mut().write_first_ndef_record(&ndef);
+        // A tag that cannot be written can still be bound by its UID (v0.5.2).
+        let uid = match &result {
+            Err(NfcError::ReadOnly) | Err(NfcError::UnsupportedTag) => {
+                plippa_hw::confirmed_uid_key(session.device_mut(), &info)
+                    .ok()
+                    .flatten()
+                    .and_then(|k| k.ok())
+            }
+            _ => None,
+        };
+        (result, before, uid)
     };
     pending.previous_key = before.as_deref().and_then(usable_key_from_ndef).map(|(k, _)| k);
     match write_result {
@@ -1323,12 +1371,13 @@ fn try_associate_write_mock(
             };
             verify_written_key(app, backend, state, library, after.as_deref());
         }
-        Err(NfcError::ReadOnly) => {
-            finish_associate_locked(app, backend, state, library, before.as_deref(), false)
+        // Cannot be written: a readable key on the tag, else its UID (v0.5.2).
+        Err(NfcError::ReadOnly) | Err(NfcError::UnsupportedTag) => {
+            finish_associate_locked(app, backend, state, library, before.as_deref(), uid, false)
         }
         // A link on the tag is kept exactly like a locked tag's key.
         Err(NfcError::HasLink) => {
-            finish_associate_locked(app, backend, state, library, before.as_deref(), true)
+            finish_associate_locked(app, backend, state, library, before.as_deref(), None, true)
         }
         Err(e) => {
             app.push_outgoing(UiOutgoing::Ipc(IpcMessage::AssociateResponse(
@@ -1383,6 +1432,47 @@ fn verify_written_key(
     finish_associate_ok(app, backend, state, library, &pending);
 }
 
+/// v0.5.2: the tag in the field has no NDEF Text/URI record, so its UID is its key. While an
+/// associate is armed that key is what gets bound — when the tag cannot be written (or the
+/// portal asked to keep the key on the tag); a tag that can still be written is left to the
+/// write, which stores a Local Noubin Key as before.
+fn handle_uid_tag_for_associate(
+    app: &mut UiApp,
+    backend: &mut NfcBackend,
+    state: &mut LoopState,
+    library: &mut Option<LibrarySource>,
+    key: Result<String, plippa_noubin::UidKeyError>,
+) {
+    let Some(pending) = state.pending_associate.clone() else {
+        return;
+    };
+    let waiting = pending.keep_existing_key || state.associate_unwritable;
+    match key {
+        Ok(key) if waiting => {
+            state.associate_unwritable = false;
+            let stash = state.last_read_ndef.clone();
+            finish_associate_locked(app, backend, state, library, stash.as_deref(), Some(key), false);
+        }
+        Err(e) if waiting => {
+            state.associate_unwritable = false;
+            app.push_outgoing(UiOutgoing::Ipc(IpcMessage::AssociateResponse(
+                AssociateResponse {
+                    request_id: pending.request_id,
+                    ok: false,
+                    error: Some(format!(
+                        "This tag has no readable Noubin key and {e}. Nothing was changed."
+                    )),
+                    ..Default::default()
+                },
+            )));
+            state.pending_associate = None;
+            app.model.banner = Some("Tag has no usable ID".into());
+        }
+        // Still to be written: the UID event only records the key (see `last_uid_key`).
+        _ => {}
+    }
+}
+
 /// A non-blank key (raw, normalised) carried by `ndef`, if any.
 fn usable_key_from_ndef(ndef: &[u8]) -> Option<(String, String)> {
     let key = extract_noubin_key(ndef).ok()?;
@@ -1402,6 +1492,7 @@ fn finish_associate_locked(
     state: &mut LoopState,
     library: &mut Option<LibrarySource>,
     ndef: Option<&[u8]>,
+    uid_key: Option<String>,
     link_kept: bool,
 ) {
     let Some(mut pending) = state.pending_associate.clone() else {
@@ -1438,7 +1529,12 @@ fn finish_associate_locked(
         }
         return;
     }
-    let Some((key, _)) = ndef.and_then(usable_key_from_ndef) else {
+    // An NDEF key wins; a tag with none that cannot be written is bound by its UID (v0.5.2).
+    let key = ndef
+        .and_then(usable_key_from_ndef)
+        .map(|(k, _)| k)
+        .or(if link_kept { None } else { uid_key });
+    let Some(key) = key else {
         if link_kept {
             fail(
                 app,
@@ -1451,8 +1547,8 @@ fn finish_associate_locked(
             fail(
                 app,
                 state,
-                "This tag is locked (read-only) and has no readable Noubin key, so it cannot be \
-                 associated. Nothing was changed.",
+                "This tag is locked or cannot be rewritten, and has no readable Noubin key or \
+                 usable tag ID, so it cannot be associated. Nothing was changed.",
                 "Locked tag has no key",
             );
         }
@@ -1476,7 +1572,7 @@ fn try_associate_write_channel(
     let NfcBackend::Channel(client) = backend else {
         return;
     };
-    if client.write_inflight() {
+    if client.write_inflight() || state.associate_unwritable {
         return;
     }
     let mut pending = pending;
@@ -1537,9 +1633,21 @@ fn handle_channel_write_result(
         return;
     }
     let locked = error.as_deref() == Some(TAG_READ_ONLY_MSG);
-    if locked || error.as_deref() == Some(TAG_HAS_LINK_MSG) {
+    let unsupported = error.as_deref() == Some(UNSUPPORTED_TAG_MSG);
+    if locked || unsupported || error.as_deref() == Some(TAG_HAS_LINK_MSG) {
         let stash = state.last_read_ndef.clone();
-        finish_associate_locked(app, backend, state, library, stash.as_deref(), !locked);
+        let link_kept = !locked && !unsupported;
+        let uid_key = state.last_uid_key.clone();
+        // A tag that cannot be written and has no readable key may still have its UID event
+        // on the way: wait for it rather than fail (see `handle_uid_tag_for_associate`).
+        if !link_kept
+            && uid_key.is_none()
+            && !stash.as_deref().is_some_and(|n| usable_key_from_ndef(n).is_some())
+        {
+            state.associate_unwritable = true;
+            return;
+        }
+        finish_associate_locked(app, backend, state, library, stash.as_deref(), uid_key, link_kept);
         return;
     }
     app.push_outgoing(UiOutgoing::Ipc(IpcMessage::AssociateResponse(
@@ -2914,6 +3022,30 @@ mod tests {
     }
 
     #[test]
+    fn associate_locked_tag_with_no_ndef_binds_its_uid() {
+        let uid = vec![0x04, 0xA1, 0xB2, 0xC3, 0xD4, 0xE5, 0xF6];
+        let r = associate_against(MockTag::blank_type2(uid, 144).locked());
+        assert!(r.ok, "{r:?}");
+        assert!(r.tag_locked, "server must apply move semantics");
+        assert_eq!(r.noubin_key.as_deref(), Some("uid:04a1b2c3d4e5f6"));
+        assert_eq!(r.noubin_key_normalised.as_deref(), Some("uid:04a1b2c3d4e5f6"));
+    }
+
+    #[test]
+    fn associate_non_ndef_tag_binds_its_uid() {
+        let r = associate_against(MockTag::non_ndef(vec![0x1A, 0x2B, 0x3C, 0x4D]));
+        assert!(r.ok && r.tag_locked, "{r:?}");
+        assert_eq!(r.noubin_key.as_deref(), Some("uid:1a2b3c4d"));
+    }
+
+    #[test]
+    fn associate_non_ndef_tag_with_a_random_uid_fails_untouched() {
+        let r = associate_against(MockTag::non_ndef(vec![0x08, 0x11, 0x22, 0x33]));
+        assert!(!r.ok, "{r:?}");
+        assert!(r.error.unwrap().contains("usable tag ID"));
+    }
+
+    #[test]
     fn associate_blank_locked_tag_fails_with_a_clear_message() {
         let tag = MockTag::blank_type4(vec![4], 128).locked();
         let r = associate_against(tag);
@@ -2983,6 +3115,17 @@ mod tests {
                     info,
                     ndef: key_ndef(key),
                 }]))
+                .unwrap();
+        }
+
+        fn uid_tag(&self, key: Result<String, plippa_noubin::UidKeyError>) {
+            let info = plippa_hw::TagInfo {
+                uid: vec![1, 2, 3, 4],
+                tag_type: TagType::Type4,
+                ndef_capacity: Some(128),
+            };
+            self.evt_tx
+                .send(NfcServiceEvent::Events(vec![NfcEvent::UidTag { info, key }]))
                 .unwrap();
         }
 
@@ -3088,15 +3231,44 @@ mod tests {
     }
 
     #[test]
-    fn associate_channel_locked_blank_tag_reports_clear_error() {
+    fn associate_channel_locked_blank_tag_with_an_unusable_id_reports_clear_error() {
         let mut rig = ChannelRig::new();
         rig.step(); // blank tag: no ReadComplete is ever emitted
         rig.write_result(false, Some(TAG_READ_ONLY_MSG));
         rig.step();
+        assert!(rig.responses().is_empty(), "waits for the tag's UID event");
+        rig.uid_tag(Err(plippa_noubin::UidKeyError::RandomUid));
+        rig.step();
         let r = rig.responses();
         assert_eq!(r.len(), 1, "{r:?}");
         assert!(!r[0].ok);
-        assert!(r[0].error.as_deref().unwrap().contains("locked"));
+        assert!(r[0].error.as_deref().unwrap().contains("random ID"));
+    }
+
+    #[test]
+    fn associate_channel_locked_blank_tag_binds_its_uid_in_either_order() {
+        // UID event first, then the write refusal.
+        let mut rig = ChannelRig::new();
+        rig.uid_tag(Ok("uid:01020304".into()));
+        rig.step();
+        assert!(rig.responses().is_empty(), "a writable tag is left to the write");
+        rig.write_result(false, Some(TAG_READ_ONLY_MSG));
+        rig.step();
+        let r = rig.responses();
+        assert_eq!(r.len(), 1, "{r:?}");
+        assert!(r[0].ok && r[0].tag_locked, "{:?}", r[0]);
+        assert_eq!(r[0].noubin_key.as_deref(), Some("uid:01020304"));
+        // Write refusal first, then the UID event.
+        let mut rig = ChannelRig::new();
+        rig.step();
+        rig.write_result(false, Some(UNSUPPORTED_TAG_MSG));
+        rig.step();
+        assert!(rig.responses().is_empty());
+        rig.uid_tag(Ok("uid:01020304".into()));
+        rig.step();
+        let r = rig.responses();
+        assert_eq!(r.len(), 1, "{r:?}");
+        assert_eq!(r[0].noubin_key.as_deref(), Some("uid:01020304"));
     }
     // ---- NB_14: prev/next buttons + LEDs -------------------------------------------------
 

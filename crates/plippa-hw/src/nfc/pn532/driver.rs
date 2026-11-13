@@ -145,19 +145,20 @@ impl NfcDevice for Pn532Nfc {
             return Ok(None);
         };
 
-        if is_mifare_classic_1k(sak) {
-            self.active = None;
-            let _ = hlta(&mut self.pn532);
-            self.wupa_pending = true;
-            return Err(NfcError::UnsupportedTag);
-        }
-
-        // ISO-DEP (Type 4 capable): not yet implemented on this backend.
-        if sak & 0x20 != 0 && !is_likely_type2(sak) {
-            self.active = None;
-            let _ = hlta(&mut self.pn532);
-            self.wupa_pending = true;
-            return Err(NfcError::UnsupportedTag);
+        // MIFARE Classic, and ISO-DEP (Type 4 capable, not yet implemented on this backend):
+        // no NDEF we can read or write, but the tag is present and its UID is a usable Noubin
+        // Key (§1.18.1). Keep it active so reads and writes report `UnsupportedTag`.
+        if is_non_ndef(sak) {
+            self.active = Some(ActiveTag {
+                uid: uid.clone(),
+                sak,
+                capacity: 0,
+            });
+            return Ok(Some(TagInfo {
+                uid,
+                tag_type: TagType::NonNdef,
+                ndef_capacity: None,
+            }));
         }
 
         let capacity = read_type2_capacity(&mut self.pn532).unwrap_or(504);
@@ -175,7 +176,7 @@ impl NfcDevice for Pn532Nfc {
 
     fn read_full_ndef(&mut self) -> Result<Vec<u8>, NfcError> {
         let active = self.active.as_ref().ok_or(NfcError::NoTag)?;
-        if is_mifare_classic_1k(active.sak) {
+        if is_non_ndef(active.sak) {
             return Err(NfcError::UnsupportedTag);
         }
         let mut payload = Vec::new();
@@ -188,7 +189,7 @@ impl NfcDevice for Pn532Nfc {
 
     fn write_first_ndef_record(&mut self, ndef_message: &[u8]) -> Result<(), NfcError> {
         let active = self.active.as_ref().ok_or(NfcError::NoTag)?;
-        if is_mifare_classic_1k(active.sak) {
+        if is_non_ndef(active.sak) {
             return Err(NfcError::UnsupportedTag);
         }
         // NB_06: a capability container that grants no write access = locked tag. Static
@@ -244,6 +245,11 @@ fn hlta(pn532: &mut Pn532Driver) -> Result<(), NfcError> {
 
 fn is_mifare_classic_1k(sak: u8) -> bool {
     (sak & 0x7F) == 0x08
+}
+
+/// Tags this backend cannot read or write as NDEF: MIFARE Classic and ISO-DEP (Type 4).
+fn is_non_ndef(sak: u8) -> bool {
+    is_mifare_classic_1k(sak) || (sak & 0x20 != 0 && !is_likely_type2(sak))
 }
 
 fn is_likely_type2(sak: u8) -> bool {
