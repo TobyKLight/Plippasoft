@@ -1,0 +1,5 @@
+# Test timings (x86_64 dev box, 6 cores, 2026-11-13)
+- scripts/fetch-testmedia.sh --force — ~3 s (68.5 MB download, 76 MB unpacked); no-op re-run is instant.
+- cargo test --workspace --locked --no-fail-fast, cold build — ~9m20s total (~5 min of that is compile). Slowest suites: plippa-audio lib ~61 s, engine tests ~39-75 s each.
+- cargo test -p plippa --test e2e_multiprocess — ~13 s warm.
+- Needs ~25 GB free for target/ on a fresh clone (the Plippa_PreRelease target dir reached 22 GB).

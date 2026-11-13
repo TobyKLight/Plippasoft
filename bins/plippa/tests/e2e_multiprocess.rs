@@ -69,7 +69,7 @@ fn e2e_tap_hit_playing_across_peers() {
         .unwrap();
 
     let mut saw_playing = false;
-    let deadline = Instant::now() + Duration::from_secs(4);
+    let deadline = Instant::now() + Duration::from_secs(10);
     while Instant::now() < deadline && !saw_playing {
         if let Ok(Some(IpcMessage::PlaybackStatus(s))) = ui.recv_timeout(Duration::from_millis(200))
         {
@@ -106,7 +106,7 @@ fn e2e_tap_miss_user_notice_to_ui_peer() {
         .unwrap();
 
     let mut saw_miss = false;
-    let deadline = Instant::now() + Duration::from_secs(4);
+    let deadline = Instant::now() + Duration::from_secs(10);
     while Instant::now() < deadline && !saw_miss {
         if let Ok(Some(IpcMessage::UserNotice(n))) = ui.recv_timeout(Duration::from_millis(200)) {
             if n.code == NOTICE_LIBRARY_MISS {

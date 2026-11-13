@@ -1029,7 +1029,13 @@ fn debug_screen_toggles_the_nfc_poll_setting_silently_and_persists_it() {
     assert!(r.app.nfc_rec_gate());
     // Back leaves the screen; toggling Off is persisted explicitly (not "unset").
     r.app.nav.force_push(Route::System);
-    r.app.nav.focus = 5; // Debug is still the last System row.
+    r.app.nav.focus = r
+        .app
+        .nav
+        .system_items()
+        .iter()
+        .position(|x| *x == Route::SystemDebug)
+        .expect("Debug is a System row");
     r.input(InputEvent::MenuEnter);
     r.input(InputEvent::MenuEnter);
     assert!(!r.app.model.play_mode.rec_enables_nfc_poll);
