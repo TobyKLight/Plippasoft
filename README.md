@@ -45,6 +45,7 @@ Note it's only possible to download from bandcamp as MP3 at this time. (Bandcamp
 - Plippasoft is open source.  
 - You can use Plippasoft to make a commercial media player you sell BUT you must come up with your own name, design, branding and UI sound ("Plippa") for your product. We reserve the exclusive right to the Plippa design and branding so that only we sell the original Plippa. 
 - However that restriction only applies to commercial use. For personal use you are welcome and encouraged to make your own Plippa. 
+- If you publish a fork of Plippasoft or your own Plippa hardware design, you may call it Plippa for personal, non-commercial use, but you must include a copy of `USE OF BRANDING.md` in your repo (and link to it from your README) so that everyone who finds it knows the Plippa name and branding can't be used commercially. Say that it is unofficial and link back to this repo. If you drop the Plippa name, logo and `assets/plippaSFX` entirely you don't need to include it.
 
 For full details see 
 LICENCE.md (Apache-2.0)  

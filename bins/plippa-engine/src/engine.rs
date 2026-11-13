@@ -973,7 +973,11 @@ impl Engine {
 
         if starts_completed > self.last_starts_completed {
             self.last_starts_completed = starts_completed;
-            self.pending_start = false;
+            // Only when every start sent has landed: an earlier start (e.g. a paused
+            // NextTrack load) finishing must not hide a later autoplay start still in flight.
+            if starts_completed >= self.extras.starts_sent {
+                self.pending_start = false;
+            }
         }
 
         if let Some(msg) = err {
@@ -1243,7 +1247,17 @@ impl Engine {
         match &self.audio {
             Some(a) => {
                 let micro = a.stats.rate_micro.load(Ordering::Relaxed);
-                self.session.rate_permille = (f64::from(micro) / 1000.0).round() as i32;
+                // While a (re)start is still in flight the audio thread may keep republishing
+                // the previous stream's rate until it takes the command (it can overwrite the
+                // zero `start_track` stored). The playhead is pinned at the start target
+                // meanwhile (`current_position_ms`), so the rate is zero too.
+                let start_in_flight =
+                    a.stats.starts_completed.load(Ordering::SeqCst) < self.extras.starts_sent;
+                self.session.rate_permille = if start_in_flight {
+                    0
+                } else {
+                    (f64::from(micro) / 1000.0).round() as i32
+                };
                 self.session.warp_active = a.stats.warp_active.load(Ordering::Relaxed);
                 self.session.speed_voice = match a.stats.speed_voice.load(Ordering::Relaxed) {
                     1 => plippa_core::VoiceKind::Varispeed,

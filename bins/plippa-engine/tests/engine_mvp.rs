@@ -14,7 +14,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 fn audio_fixture(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -654,8 +654,14 @@ fn tap_resume_after_stop_seeks_with_sfx() {
         tap_id: 21,
         already_normalised: false,
     }));
-    // SFX cover holds main ~1s; wait for main frames after that.
-    wait_frames(&engine, 64, Duration::from_secs(3));
+    // SFX cover holds main ~1s. `wait_frames` counts frames since the engine opened (already
+    // past 64 from the first tap), so wait for the resumed track's own stream to open.
+    let wait = Instant::now();
+    while engine.mock_open_rates()[rates_before..].iter().all(|r| *r != 48_000)
+        && wait.elapsed() < Duration::from_secs(5)
+    {
+        thread::sleep(Duration::from_millis(10));
+    }
 
     // Every tap (including resume) plays SFX at its native rate.
     let rates = engine.mock_open_rates();
@@ -1057,6 +1063,7 @@ fn a_tap_publishes_a_still_playhead_through_the_sfx_cover() {
     }));
     wait_frames(&engine, 24_000, Duration::from_secs(3));
 
+    let tapped = std::time::Instant::now();
     engine.handle_ipc(IpcMessage::TapKey(TapKeyPayload {
         noubin_key: "still.b".into(),
         tap_id: 2,
@@ -1085,7 +1092,8 @@ fn a_tap_publishes_a_still_playhead_through_the_sfx_cover() {
         engine.publish_status();
         for s in engine.take_events() {
             if let EngineEvent::Status(s) = s {
-                if t.elapsed() < Duration::from_millis(250) {
+                // Measured from the tap: a starved test thread must not outlive the 1s cover.
+                if t.elapsed() < Duration::from_millis(250) && tapped.elapsed() < Duration::from_millis(700) {
                     assert_eq!(s.session.rate_permille, 0, "still armed");
                     assert_eq!(s.session.position_ms, before, "the playhead must not move");
                 }

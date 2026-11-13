@@ -3,3 +3,4 @@
 - cargo test --workspace --locked --no-fail-fast, cold build — ~9m20s total (~5 min of that is compile). Slowest suites: plippa-audio lib ~61 s, engine tests ~39-75 s each.
 - cargo test -p plippa --test e2e_multiprocess — ~13 s warm.
 - Needs ~25 GB free for target/ on a fresh clone (the Plippa_PreRelease target dir reached 22 GB).
+- cargo test -p plippa-engine --no-fail-fast — ~3m25s warm. The wall-clock-paced suites (engine_chase, engine_cross, engine_reverse, engine_seamless, uds_ipc, plippa-ui warp_journey) flake when run in parallel and pass with `-- --test-threads=1` or alone, except `uds_ipc::warp_commands_round_trip_over_uds_into_status`, which fails alone (it scans backward from track start; fails with and without the 2026-11-13 engine changes). Use `--test-threads=1` for these.
