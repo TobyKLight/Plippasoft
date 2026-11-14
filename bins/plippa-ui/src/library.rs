@@ -128,6 +128,18 @@ impl LibrarySource {
         self.roots.first().map(|p| p.as_path())
     }
 
+    /// Every playable (across the open roots) whose `noubinKeyNormalised` is `norm`, with the
+    /// root that holds it. Index only: callers trust the `.noudata` file before acting.
+    pub fn holders_of_key(&self, norm: &str) -> Vec<(PathBuf, plippa_noubin::PlayableRecord)> {
+        let mut out = Vec::new();
+        for (root, reader) in &self.readers {
+            if let Ok(records) = reader.find_by_key(norm) {
+                out.extend(records.into_iter().map(|r| (root.clone(), r)));
+            }
+        }
+        out
+    }
+
     /// All library roots from the last successful discovery pass.
     pub fn roots(&self) -> &[PathBuf] {
         &self.roots

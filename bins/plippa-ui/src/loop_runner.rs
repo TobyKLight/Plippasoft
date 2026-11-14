@@ -845,6 +845,21 @@ pub fn run_ui_loop(
                                             continue;
                                         }
                                     }
+                                    if let NfcEvent::ReadComplete { ndef, .. } = &ev {
+                                        if state.pending_associate.is_some()
+                                            && state.associate_unwritable
+                                            && usable_key_from_ndef(ndef).is_some()
+                                        {
+                                            // The write was refused before this read arrived.
+                                            let link = plippa_noubin::first_record_is_uri_key(ndef);
+                                            let ndef = ndef.clone();
+                                            finish_associate_locked(
+                                                app, backend, state, library, Some(&ndef), None, link,
+                                            );
+                                            state.dirty = true;
+                                            continue;
+                                        }
+                                    }
                                     let keep_read = matches!(
                                         (&ev, state.pending_associate.as_ref()),
                                         (
@@ -1495,6 +1510,7 @@ fn finish_associate_locked(
     uid_key: Option<String>,
     link_kept: bool,
 ) {
+    state.associate_unwritable = false;
     let Some(mut pending) = state.pending_associate.clone() else {
         return;
     };
@@ -1510,25 +1526,6 @@ fn finish_associate_locked(
         state.pending_associate = None;
         app.model.banner = Some(banner.into());
     };
-    if pending.write_noudata_locally {
-        if link_kept {
-            fail(
-                app,
-                state,
-                "This tag already carries a link, which is never overwritten. Associate it from \
-                 the web portal (\"use the key already on the tag\").",
-                "Tag has a link",
-            );
-        } else {
-            fail(
-                app,
-                state,
-                "This tag is locked. Associate it from the web portal (\"use the key already on the tag\").",
-                "Tag is locked",
-            );
-        }
-        return;
-    }
     // An NDEF key wins; a tag with none that cannot be written is bound by its UID (v0.5.2).
     let key = ndef
         .and_then(usable_key_from_ndef)
@@ -1640,8 +1637,9 @@ fn handle_channel_write_result(
         let uid_key = state.last_uid_key.clone();
         // A tag that cannot be written and has no readable key may still have its UID event
         // on the way: wait for it rather than fail (see `handle_uid_tag_for_associate`).
-        if !link_kept
-            && uid_key.is_none()
+        // (The write is requested as soon as the tag is seen, so its refusal can beat the
+        // tag's own read: wait for that read rather than fail and let it become a tap.)
+        if uid_key.is_none()
             && !stash.as_deref().is_some_and(|n| usable_key_from_ndef(n).is_some())
         {
             state.associate_unwritable = true;
@@ -1699,6 +1697,11 @@ fn finish_associate_ok(
                 .show_status("Associate metadata write failed", app.now_ms());
             return;
         }
+        // The tag's key cannot change (locked, or a link we keep): bind it here and clear it from
+        // every other item holding it (§3.4 step 3), so one tap never means two items.
+        if pending.keep_existing_key || pending.tag_locked {
+            clear_key_from_other_items(library, pending, &norm);
+        }
         if let Some(lib) = library.as_mut() {
             lib.reopen();
         }
@@ -1725,6 +1728,43 @@ fn finish_associate_ok(
     }
     state.pending_associate = None;
     let _ = backend.mark_field_tag_as_loaded();
+}
+
+/// Device-side move semantics: clear `norm` from every item other than the target that
+/// really carries it in its `.noudata` (the file is trusted, not the index). Best effort: an
+/// item that cannot be rewritten keeps the key and is logged.
+fn clear_key_from_other_items(library: &Option<LibrarySource>, pending: &PendingAssociate, norm: &str) {
+    let Some(lib) = library.as_ref() else {
+        return;
+    };
+    let mut touched: Vec<std::path::PathBuf> = Vec::new();
+    for (root, rec) in lib.holders_of_key(norm) {
+        if rec.is_orphan || rec.noudata_relpath.is_empty() || rec.noudata_relpath == pending.noudata_relpath {
+            continue;
+        }
+        let path = root.join(&rec.noudata_relpath);
+        let Ok(bytes) = plippa_noubin::read_noudata_capped(&path) else {
+            continue;
+        };
+        let Ok(mut doc) = parse_noudata(&bytes) else {
+            continue;
+        };
+        if doc.noubin_key_normalised.as_deref() != Some(norm) {
+            continue;
+        }
+        doc.noubin_key = None;
+        doc.noubin_key_normalised = None;
+        if doc.write_to_path(&path).is_err() {
+            eprintln!("plippa-ui: associate: could not clear the key from {}", rec.noudata_relpath);
+        } else if !touched.contains(&root) {
+            touched.push(root);
+        }
+    }
+    // The index follows the files, so the cleared items stop matching this tag at once.
+    for root in touched {
+        let _ = LibraryWriter::open_with(&LibraryRoot::new(&root), plippa_noubin::OpenWait::Interactive)
+            .and_then(|mut w| w.full_scan());
+    }
 }
 
 /// After NFC success only: set keys in `.noudata` and refresh the WAL index.
@@ -2403,6 +2443,79 @@ mod tests {
             "expected AssociateResponse failure for blank key in {out:?}"
         );
         assert!(state.pending_associate.is_none());
+    }
+
+    #[test]
+    fn device_associate_keeps_a_link_on_the_tag_and_moves_its_key() {
+        use plippa_noubin::{encode_uri_record, normalise_noubin_key, LibraryRoot, LibraryWriter};
+        use std::fs;
+
+        let link = "https://noubin.com/n/artist/release/ABC123/";
+        let norm = normalise_noubin_key(link);
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        fs::write(root.join("tone.wav"), b"RIFF").unwrap();
+        fs::write(root.join("other.wav"), b"RIFF").unwrap();
+        fs::write(
+            root.join("_tone.noudata"),
+            r#"{"playableItemTitle": "Tone", "mediaList": [{"localFilePaths": ["tone.wav"]}]}"#,
+        )
+        .unwrap();
+        fs::write(
+            root.join("_other.noudata"),
+            format!(
+                r#"{{"playableItemTitle": "Other", "noubinKey": "{link}", "noubinKeyNormalised": "{norm}",
+                    "mediaList": [{{"localFilePaths": ["other.wav"]}}]}}"#
+            ),
+        )
+        .unwrap();
+        LibraryWriter::open(&LibraryRoot::new(root)).unwrap().full_scan().unwrap();
+
+        let mut app = UiApp::new(UiConfig::default());
+        let mut lib_src = Some(crate::LibrarySource::open(Some(root)));
+        let items = lib_src.as_ref().unwrap().list_items();
+        let tone = items.iter().find(|i| i.title.contains("Tone")).expect("tone").id;
+        app.set_library(items);
+        app.model.detail_playable_id = Some(tone);
+        app.nav.force_push(crate::Route::Library);
+        app.nav.force_push(crate::Route::LibraryDetail);
+        app.nav.focus = 1; // Associate
+        let mut wifi = MockWifi::default();
+        app.handle_input(InputEvent::MenuEnter, &mut wifi);
+        assert_eq!(*app.nav.current(), crate::Route::LibraryAssociate);
+
+        let mut display = MockDisplay::new(320, 240);
+        let mut input = MockInput::new();
+        let tag = MockTag::blank_type4(vec![1, 2, 3], 128)
+            .with_ndef_message(encode_uri_record(link).unwrap());
+        let mut nfc = Some(NfcBackend::mock_with_tag(tag));
+        let mut sys = SysProviders::mock("00:00", None, "n/a");
+        let mut conn = None;
+        let mut led = crate::MockLedCue::default();
+        let mut state = LoopState::default();
+        let _ = run_ui_loop(
+            &mut app, &mut display, &mut wifi, &mut input, &mut nfc, &mut sys, &mut lib_src,
+            &mut conn, &mut led, &mut state,
+            LoopLimits { max_iters: Some(8), sleep: Duration::ZERO, ..Default::default() },
+        );
+
+        assert!(state.pending_associate.is_none());
+        let out = app.take_outgoing();
+        assert!(out.iter().any(|o| matches!(
+            o,
+            UiOutgoing::Ipc(IpcMessage::AssociateResponse(r)) if r.ok && r.tag_locked
+        )), "{out:?}");
+        // The link is still the tag's content (never overwritten) ...
+        if let Some(NfcBackend::Mock { session }) = nfc.as_mut() {
+            let ndef = session.device_mut().read_full_ndef().unwrap();
+            assert_eq!(extract_noubin_key(&ndef).unwrap(), link);
+        }
+        // ... the new item carries it, and the previous holder lost it.
+        let tone_doc = parse_noudata(&fs::read(root.join("_tone.noudata")).unwrap()).unwrap();
+        assert_eq!(tone_doc.noubin_key.as_deref(), Some(link));
+        let other_doc = parse_noudata(&fs::read(root.join("_other.noudata")).unwrap()).unwrap();
+        assert_eq!(other_doc.noubin_key, None);
+        assert_eq!(other_doc.noubin_key_normalised, None);
     }
 
     #[test]
@@ -3243,6 +3356,25 @@ mod tests {
         assert_eq!(r.len(), 1, "{r:?}");
         assert!(!r[0].ok);
         assert!(r[0].error.as_deref().unwrap().contains("random ID"));
+    }
+
+    #[test]
+    fn associate_channel_link_refusal_that_beats_the_read_still_binds_the_link() {
+        // The write is requested as soon as the tag is seen, so HasLink can arrive before the
+        // tag's own read. It must wait for the read, not fail and let the read become a tap.
+        let link = "https://noubin.com/n/artist/release/ABC123/";
+        let mut rig = ChannelRig::new();
+        rig.step();
+        rig.write_result(false, Some(TAG_HAS_LINK_MSG));
+        rig.step();
+        assert!(rig.responses().is_empty(), "waits for the read");
+        assert!(rig.state.pending_associate.is_some());
+        rig.read_complete(link);
+        rig.step();
+        let r = rig.responses();
+        assert_eq!(r.len(), 1, "{r:?}");
+        assert!(r[0].ok && r[0].tag_locked, "{:?}", r[0]);
+        assert_eq!(r[0].noubin_key.as_deref(), Some(link));
     }
 
     #[test]
