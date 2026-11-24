@@ -72,4 +72,22 @@ impl NfcBusOps for Poc2Nfc {
     fn wake_armed(&self) -> bool {
         self.session.device().wake_armed()
     }
+
+    fn health_check(&mut self) -> Result<(), String> {
+        self.session
+            .device_mut()
+            .health_check()
+            .map_err(|e| e.to_string())
+    }
+
+    fn recover(&mut self) -> Result<(), String> {
+        self.session
+            .device_mut()
+            .recover()
+            .map_err(|e| e.to_string())
+    }
+
+    fn tag_active(&self) -> bool {
+        self.session.device().has_active_tag()
+    }
 }

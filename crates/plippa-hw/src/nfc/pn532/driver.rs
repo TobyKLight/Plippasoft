@@ -7,7 +7,7 @@ use core::convert::Infallible;
 use linux_embedded_hal::nb;
 use linux_embedded_hal::{CountDown as HalCountDown, SysTimer};
 use pn532::requests::{Command, SAMMode};
-use pn532::{CountDown, IntoDuration, Pn532, Request};
+use pn532::{CountDown, Error as Pn532Error, IntoDuration, Pn532, Request};
 use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::Duration;
@@ -70,6 +70,9 @@ pub struct Pn532Nfc {
     /// After an empty InList (or HLTA), the next [`NfcDevice::poll`] does WUPA+InList
     /// instead of stacking both in one bus-critical section (keeps AW9523 responsive).
     wupa_pending: bool,
+    i2c_path: PathBuf,
+    /// Firmware version words read at open; every later probe must match.
+    firmware: [u8; 4],
 }
 
 impl Pn532Nfc {
@@ -78,33 +81,59 @@ impl Pn532Nfc {
     }
 
     pub fn open_with(cfg: &Pn532NfcConfig) -> Result<Self, NfcError> {
-        let i2c = Pn532I2c::open(&cfg.i2c_path).map_err(|e| {
-            NfcError::Io(format!(
-                "open {}: {e:?} — enable I2C and confirm address 0x24",
-                cfg.i2c_path.display()
-            ))
-        })?;
-        let mut pn532 = Pn532::new(RpiI2cInterface { i2c }, Pn532Timer(SysTimer::new()));
-        thread::sleep(Duration::from_millis(100));
-
-        pn532
-            .process(
-                &Request::sam_configuration(SAMMode::Normal, false),
-                0,
-                1000.ms(),
-            )
-            .map_err(|e| NfcError::Io(format!("SAM configuration failed: {e:?}")))?;
-
-        let _fw = pn532
-            .process(&Request::GET_FIRMWARE_VERSION, 4, 500.ms())
-            .map_err(|e| NfcError::Io(format!("firmware version read failed: {e:?}")))?;
+        let i2c = open_i2c(&cfg.i2c_path)?;
+        let mut pn532 = Pn532::new(RpiI2cInterface::new(i2c), Pn532Timer(SysTimer::new()));
+        let firmware = init_chip(&mut pn532)?;
 
         Ok(Self {
             pn532,
             active: None,
             inlist_timeout_ms: cfg.inlist_timeout_ms.max(1),
             wupa_pending: false,
+            i2c_path: cfg.i2c_path.clone(),
+            firmware,
         })
+    }
+
+    /// Short active probe with a known answer (an idle field and a stuck reader look the same
+    /// to polling). Runs GetFirmwareVersion and compares with the version read at open, then a
+    /// Diagnose communication-line test echoing a fixed pattern.
+    pub fn health_check(&mut self) -> Result<(), NfcError> {
+        probe_chip(&mut self.pn532, &self.firmware)
+    }
+
+    /// Re-run the open-time init (settle, SAM configuration, firmware read); if that fails,
+    /// reopen the I2C device handle and try once more. Touches only the PN532.
+    pub fn recover(&mut self) -> Result<(), NfcError> {
+        self.active = None;
+        self.wupa_pending = false;
+        let first = init_chip(&mut self.pn532);
+        let first_err = match first {
+            Ok(fw) => return self.adopt_firmware(fw),
+            Err(e) => e,
+        };
+        let i2c = open_i2c(&self.i2c_path).map_err(|e| {
+            NfcError::Io(format!("re-init failed ({first_err}); reopen failed ({e})"))
+        })?;
+        self.pn532.interface.i2c = i2c;
+        let fw = init_chip(&mut self.pn532)
+            .map_err(|e| NfcError::Io(format!("re-init failed ({first_err}); after reopen ({e})")))?;
+        self.adopt_firmware(fw)
+    }
+
+    fn adopt_firmware(&mut self, fw: [u8; 4]) -> Result<(), NfcError> {
+        if fw != self.firmware {
+            return Err(NfcError::Io(format!(
+                "firmware version changed after re-init: {:02x?} != {:02x?}",
+                fw, self.firmware
+            )));
+        }
+        Ok(())
+    }
+
+    /// A tag is currently selected (seen by the last poll).
+    pub fn has_active_tag(&self) -> bool {
+        self.active.is_some()
     }
 
     pub fn i2c_path_hint() -> &'static Path {
@@ -121,22 +150,78 @@ impl Pn532Nfc {
     }
 }
 
+fn open_i2c(path: &Path) -> Result<Pn532I2c, NfcError> {
+    Pn532I2c::open(path).map_err(|e| {
+        NfcError::Io(format!(
+            "open {}: {e:?} — enable I2C and confirm address 0x24",
+            path.display()
+        ))
+    })
+}
+
+/// Settle, SAM configuration, firmware read. Returns the firmware version words.
+fn init_chip(pn532: &mut Pn532Driver) -> Result<[u8; 4], NfcError> {
+    thread::sleep(Duration::from_millis(100));
+    pn532
+        .process(
+            &Request::sam_configuration(SAMMode::Normal, false),
+            0,
+            1000.ms(),
+        )
+        .map_err(|e| NfcError::Io(format!("SAM configuration failed: {e:?}")))?;
+    read_firmware(pn532)
+}
+
+fn read_firmware(pn532: &mut Pn532Driver) -> Result<[u8; 4], NfcError> {
+    let fw = pn532
+        .process(&Request::GET_FIRMWARE_VERSION, 4, 500.ms())
+        .map_err(|e| NfcError::Io(format!("firmware version read failed: {e:?}")))?;
+    <[u8; 4]>::try_from(fw)
+        .map_err(|_| NfcError::Io(format!("firmware version reply has {} bytes", fw.len())))
+}
+
+/// Diagnose test 0x00 (communication line): the chip echoes the pattern back.
+const COMMLINE_TEST: Request<5> = Request::new(Command::Diagnose, [0x00, 0xA5, 0x5A, 0x3C, 0xC3]);
+
+fn probe_chip(pn532: &mut Pn532Driver, expected_fw: &[u8; 4]) -> Result<(), NfcError> {
+    let fw = read_firmware(pn532)?;
+    if &fw != expected_fw {
+        return Err(NfcError::Io(format!(
+            "firmware version {fw:02x?} != {expected_fw:02x?}"
+        )));
+    }
+    let echo = pn532
+        .process(&COMMLINE_TEST, COMMLINE_TEST.data.len(), 100.ms())
+        .map_err(|e| NfcError::Io(format!("comm-line test failed: {e:?}")))?;
+    if echo != COMMLINE_TEST.data {
+        return Err(NfcError::Io(format!("comm-line test echo {echo:02x?}")));
+    }
+    Ok(())
+}
+
 impl NfcDevice for Pn532Nfc {
     fn poll(&mut self) -> Result<Option<TagInfo>, NfcError> {
-        let found = if self.wupa_pending {
+        let outcome = if self.wupa_pending {
             self.wupa_pending = false;
             // HALT wake path — one InList after WUPA (still one critical section, but
             // only on the tick after an empty field check, not stacked every poll).
             let _ = self.pn532.process_no_response(&WUPA, 20.ms());
             inlist_tag(&mut self.pn532, self.inlist_timeout_ms)
         } else {
-            match inlist_tag(&mut self.pn532, self.inlist_timeout_ms) {
-                Some(t) => Some(t),
-                None => {
-                    // Defer WUPA to the next poll so AW9523 can sample between.
-                    self.wupa_pending = true;
-                    None
-                }
+            let r = inlist_tag(&mut self.pn532, self.inlist_timeout_ms);
+            if matches!(r, Ok(InList::Idle)) {
+                // Defer WUPA to the next poll so AW9523 can sample between.
+                self.wupa_pending = true;
+            }
+            r
+        };
+
+        let found = match outcome {
+            Ok(InList::Tag(uid, sak)) => Some((uid, sak)),
+            Ok(InList::Idle) => None,
+            Err(e) => {
+                self.active = None;
+                return Err(NfcError::Io(e));
             }
         };
 
@@ -219,22 +304,55 @@ impl NfcDevice for Pn532Nfc {
     }
 }
 
-fn inlist_tag(pn532: &mut Pn532Driver, timeout_ms: u64) -> Option<(Vec<u8>, u8)> {
+/// Result of one InListPassiveTarget that did not fail.
+#[derive(Debug, PartialEq, Eq)]
+enum InList {
+    Tag(Vec<u8>, u8),
+    /// Empty field (zero targets, or the normal response timeout).
+    Idle,
+}
+
+fn inlist_tag(pn532: &mut Pn532Driver, timeout_ms: u64) -> Result<InList, String> {
     let timeout_ms = timeout_ms.max(1);
-    let resp = pn532
-        .process(
-            &Request::INLIST_ONE_ISO_A_TARGET,
-            20,
-            timeout_ms.ms(),
-        )
-        .ok()?;
-    if resp.first()? == &0 || resp.len() < 6 {
-        return None;
+    let errors_before = pn532.interface.wait_errors;
+    let r = pn532
+        .process(&Request::INLIST_ONE_ISO_A_TARGET, 20, timeout_ms.ms())
+        .map(<[u8]>::to_vec);
+    let bus_errors = pn532.interface.wait_errors != errors_before;
+    classify_inlist(r, bus_errors)
+}
+
+/// Tag / idle / hard failure. A response timeout is the normal empty-field outcome, unless the
+/// bus errored while waiting (the interface hides those as "not ready"). Everything else
+/// (bad frames, ACK timeout, interface errors, malformed replies) is a hard failure.
+fn classify_inlist<E: core::fmt::Debug>(
+    r: Result<impl AsRef<[u8]>, Pn532Error<E>>,
+    bus_errors: bool,
+) -> Result<InList, String> {
+    match r {
+        Ok(resp) => parse_inlist(resp.as_ref()),
+        Err(Pn532Error::TimeoutResponse) if !bus_errors => Ok(InList::Idle),
+        Err(Pn532Error::TimeoutResponse) => Err("InList: I2C errors while waiting".into()),
+        Err(e) => Err(format!("InList: {e:?}")),
+    }
+}
+
+fn parse_inlist(resp: &[u8]) -> Result<InList, String> {
+    match resp.first() {
+        None => return Err("InList: empty response".into()),
+        Some(0) => return Ok(InList::Idle),
+        Some(_) => {}
+    }
+    if resp.len() < 6 {
+        return Err(format!("InList: short response {resp:02x?}"));
     }
     let sak = resp[4];
     let uid_len = resp[5] as usize;
-    let uid = resp.get(6..6 + uid_len)?.to_vec();
-    Some((uid, sak))
+    let uid = resp
+        .get(6..6 + uid_len)
+        .ok_or_else(|| format!("InList: truncated UID in {resp:02x?}"))?
+        .to_vec();
+    Ok(InList::Tag(uid, sak))
 }
 
 fn hlta(pn532: &mut Pn532Driver) -> Result<(), NfcError> {
@@ -397,5 +515,34 @@ mod tests {
         // Not a valid CC (blank/unformatted tag): never classified as locked here.
         cc[0] = 0x00;
         assert!(!type2_cc_is_read_only(&cc));
+    }
+
+    type E = Pn532Error<()>;
+
+    fn fail(e: E, bus: bool) -> Result<InList, String> {
+        classify_inlist::<()>(Err::<Vec<u8>, E>(e), bus)
+    }
+
+    #[test]
+    fn inlist_classification_separates_tag_idle_and_failure() {
+        let tag = [1, 1, 0x00, 0x04, 0x00, 4, 0xDE, 0xAD, 0xBE, 0xEF];
+        assert_eq!(
+            classify_inlist::<()>(Ok(&tag), false),
+            Ok(InList::Tag(vec![0xDE, 0xAD, 0xBE, 0xEF], 0x00))
+        );
+        assert_eq!(classify_inlist::<()>(Ok(&[0]), false), Ok(InList::Idle));
+        assert_eq!(
+            fail(E::TimeoutResponse, false),
+            Ok(InList::Idle)
+        );
+        // Timeout while the bus was erroring is not an empty field.
+        assert!(fail(E::TimeoutResponse, true).is_err());
+        assert!(fail(E::TimeoutAck, false).is_err());
+        assert!(fail(E::BadAck, false).is_err());
+        assert!(fail(E::InterfaceError(()), false).is_err());
+        assert!(classify_inlist::<()>(Ok(&[]), false).is_err());
+        assert!(classify_inlist::<()>(Ok(&[1, 1, 0]), false).is_err());
+        // UID length runs past the end of the reply.
+        assert!(classify_inlist::<()>(Ok(&[1, 1, 0, 4, 0, 7, 1, 2]), false).is_err());
     }
 }

@@ -103,6 +103,16 @@ impl I2c for Pn532I2c {
 
 pub struct RpiI2cInterface {
     pub i2c: Pn532I2c,
+    /// Ready-byte reads that failed with a transient I2C error (NACK/EIO/timeout) and were
+    /// reported to the protocol layer as "not ready yet". Monotonic; the driver compares it
+    /// before/after a command to tell a bus failure from an ordinary response timeout.
+    pub wait_errors: u32,
+}
+
+impl RpiI2cInterface {
+    pub fn new(i2c: Pn532I2c) -> Self {
+        Self { i2c, wait_errors: 0 }
+    }
 }
 
 impl Interface for RpiI2cInterface {
@@ -124,7 +134,10 @@ impl Interface for RpiI2cInterface {
                     Poll::Pending
                 }
             }
-            Err(e) if transient(&e) => Poll::Pending,
+            Err(e) if transient(&e) => {
+                self.wait_errors = self.wait_errors.wrapping_add(1);
+                Poll::Pending
+            }
             Err(e) => Poll::Ready(Err(e)),
         }
     }

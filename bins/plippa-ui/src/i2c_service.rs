@@ -70,6 +70,136 @@ pub trait NfcBusOps {
     fn wake_armed(&self) -> bool {
         false
     }
+
+    /// Short active probe with a known answer; `Err` means the reader is not responding
+    /// correctly (an idle and a stuck reader look the same to polling).
+    fn health_check(&mut self) -> Result<(), String>;
+
+    /// Re-initialise the reader (and reopen its bus handle if needed).
+    fn recover(&mut self) -> Result<(), String>;
+
+    /// A tag is currently selected, so no probe may interrupt it.
+    fn tag_active(&self) -> bool;
+}
+
+/// Seconds between health probes while the reader is idle.
+const WATCHDOG_PROBE_INTERVAL: Duration = Duration::from_secs(10);
+/// First retry delay after a failed recovery; doubles up to [`WATCHDOG_BACKOFF_CAP`].
+const WATCHDOG_BACKOFF_START: Duration = Duration::from_secs(1);
+const WATCHDOG_BACKOFF_CAP: Duration = Duration::from_secs(30);
+/// Consecutive hard poll failures that trigger recovery without waiting for the probe.
+const WATCHDOG_POLL_FAILURES: u32 = 3;
+/// Minimum spacing between repeats of the same watchdog log line.
+const WATCHDOG_LOG_INTERVAL: Duration = Duration::from_secs(60);
+
+#[derive(Clone, Copy)]
+enum WatchdogLog {
+    ProbeFailed,
+    Recovered,
+    RecoveryFailed,
+}
+
+/// Detects a PN532 that stopped detecting tags without reporting errors, and re-initialises it.
+/// Pure state machine: time is passed in (as time since an arbitrary epoch).
+pub struct NfcWatchdog {
+    next_probe: Option<Duration>,
+    backoff: Duration,
+    poll_failures: u32,
+    recoveries: u32,
+    last_log: [Option<Duration>; 3],
+}
+
+impl NfcWatchdog {
+    pub fn new() -> Self {
+        Self {
+            next_probe: None,
+            backoff: WATCHDOG_BACKOFF_START,
+            poll_failures: 0,
+            recoveries: 0,
+            last_log: [None; 3],
+        }
+    }
+
+    /// Number of successful recoveries so far.
+    pub fn recoveries(&self) -> u32 {
+        self.recoveries
+    }
+
+    /// Record the outcome of a poll: `false` is a hard failure (not an empty field).
+    pub fn note_poll(&mut self, ok: bool) {
+        if ok {
+            self.poll_failures = 0;
+        } else {
+            self.poll_failures = self.poll_failures.saturating_add(1);
+        }
+    }
+
+    /// Run a probe and/or recovery if one is due. Call only between NFC commands.
+    /// `write_pending`: a write/associate is queued or running (nothing may run).
+    /// Returns `true` when the bus was used.
+    pub fn tick<N: NfcBusOps>(
+        &mut self,
+        now: Duration,
+        write_pending: bool,
+        nfc: &mut N,
+        log: &mut dyn FnMut(&str),
+    ) -> bool {
+        if write_pending {
+            return false;
+        }
+        let next = *self.next_probe.get_or_insert(now + WATCHDOG_PROBE_INTERVAL);
+        let forced = self.poll_failures >= WATCHDOG_POLL_FAILURES;
+        let tag = nfc.tag_active();
+        if !forced && (tag || now < next) {
+            return false;
+        }
+
+        if !forced {
+            match nfc.health_check() {
+                Ok(()) => {
+                    self.reset_schedule(now);
+                    return true;
+                }
+                Err(e) => self.emit(now, WatchdogLog::ProbeFailed, format!("probe failed ({e})"), log),
+            }
+        } else {
+            let e = format!("{} consecutive poll failures", self.poll_failures);
+            self.emit(now, WatchdogLog::ProbeFailed, format!("probe failed ({e})"), log);
+        }
+
+        let result = nfc.recover().and_then(|()| nfc.health_check());
+        match result {
+            Ok(()) => {
+                self.recoveries += 1;
+                self.poll_failures = 0;
+                self.reset_schedule(now);
+                let n = self.recoveries;
+                self.emit(now, WatchdogLog::Recovered, format!("recovered after reinit (#{n})"), log);
+            }
+            Err(e) => {
+                self.next_probe = Some(now + self.backoff);
+                self.backoff = (self.backoff * 2).min(WATCHDOG_BACKOFF_CAP);
+                // Retry through the probe path, not the stale poll-failure count.
+                self.poll_failures = 0;
+                self.emit(now, WatchdogLog::RecoveryFailed, format!("recovery failed ({e})"), log);
+            }
+        }
+        true
+    }
+
+    fn reset_schedule(&mut self, now: Duration) {
+        self.next_probe = Some(now + WATCHDOG_PROBE_INTERVAL);
+        self.backoff = WATCHDOG_BACKOFF_START;
+    }
+
+    fn emit(&mut self, now: Duration, kind: WatchdogLog, msg: String, log: &mut dyn FnMut(&str)) {
+        let slot = &mut self.last_log[kind as usize];
+        if slot.is_some_and(|t| now.saturating_sub(t) < WATCHDOG_LOG_INTERVAL) {
+            return;
+        }
+        *slot = Some(now);
+        log(&format!("NFC watchdog: {msg}"));
+    }
 }
 
 /// Optional encoder deltas (GPIO — may share the service thread).
@@ -293,6 +423,7 @@ fn run_nfc_cmd<N>(
     nfc_tx: &SyncSender<NfcServiceEvent>,
     cmd: I2cCmd,
     slow_nfc_remaining_ms: &mut u64,
+    watchdog: &mut NfcWatchdog,
 ) -> bool
 where
     N: NfcBusOps,
@@ -347,11 +478,15 @@ where
             if let Some(n) = nfc.as_mut() {
                 match n.poll_events() {
                     Ok(events) => {
+                        watchdog.note_poll(true);
                         if !events.is_empty() {
                             push_nfc(nfc_tx, NfcServiceEvent::Events(events));
                         }
                     }
-                    Err(e) => eprintln!("plippa-ui: NFC poll error: {e}"),
+                    Err(e) => {
+                        watchdog.note_poll(false);
+                        eprintln!("plippa-ui: NFC poll error: {e}");
+                    }
                 }
             } else {
                 eprintln!("plippa-ui: PollTick but no NFC device on I²C service");
@@ -405,7 +540,7 @@ where
     }
 
     match cmd {
-        Some(c) => run_nfc_cmd(nfc, nfc_tx, c, slow_nfc_remaining_ms),
+        Some(c) => run_nfc_cmd(nfc, nfc_tx, c, slow_nfc_remaining_ms, &mut NfcWatchdog::new()),
         None => true,
     }
 }
@@ -439,6 +574,7 @@ pub fn run_i2c_service_loop<E, N, Enc>(
     let mut read_fail_logged = false;
     let mut expander_turns_since_nfc = EXPANDER_TURNS_BEFORE_NFC;
     let mut pending_nfc: Option<I2cCmd> = None;
+    let mut watchdog = NfcWatchdog::new();
     let mut running = true;
     let mut read_expander = true;
     let mut last_port_read = Instant::now();
@@ -528,7 +664,13 @@ pub fn run_i2c_service_loop<E, N, Enc>(
                 if is_blocking {
                     expander_turns_since_nfc = 0;
                 }
-                running = run_nfc_cmd(&mut nfc, &nfc_tx, cmd, &mut slow_nfc_remaining_ms);
+                running = run_nfc_cmd(
+                    &mut nfc,
+                    &nfc_tx,
+                    cmd,
+                    &mut slow_nfc_remaining_ms,
+                    &mut watchdog,
+                );
                 // Catch a press held through the NFC critical section ASAP.
                 sample_inputs(
                     &mut expander,
@@ -548,7 +690,13 @@ pub fn run_i2c_service_loop<E, N, Enc>(
                 // HALT tags are seen without waiting for the next 200 ms PollTick.
                 if running && is_poll && nfc.as_ref().is_some_and(|n| n.wake_armed()) {
                     running =
-                        run_nfc_cmd(&mut nfc, &nfc_tx, I2cCmd::PollTick, &mut slow_nfc_remaining_ms);
+                        run_nfc_cmd(
+                            &mut nfc,
+                            &nfc_tx,
+                            I2cCmd::PollTick,
+                            &mut slow_nfc_remaining_ms,
+                            &mut watchdog,
+                        );
                     sample_inputs(
                         &mut expander,
                         &mut encoders,
@@ -563,6 +711,32 @@ pub fn run_i2c_service_loop<E, N, Enc>(
                     );
                     last_port_read = Instant::now();
                 }
+                force_read_after_nfc = true;
+            }
+        } else if let Some(n) = nfc.as_mut() {
+            // Idle turn: no NFC command ran or is queued. Same pacing as other blocking NFC work.
+            if expander_turns_since_nfc >= EXPANDER_TURNS_BEFORE_NFC
+                && watchdog.tick(
+                    epoch.elapsed(),
+                    false,
+                    n,
+                    &mut |m| eprintln!("plippa-ui: {m}"),
+                )
+            {
+                expander_turns_since_nfc = 0;
+                sample_inputs(
+                    &mut expander,
+                    &mut encoders,
+                    &mut debouncer,
+                    &roles,
+                    &input_tx,
+                    Instant::now(),
+                    epoch,
+                    &mut overflow_logged,
+                    &mut read_fail_logged,
+                    true,
+                );
+                last_port_read = Instant::now();
                 force_read_after_nfc = true;
             }
         }
@@ -773,6 +947,18 @@ mod tests {
         fn mark_field_tag_as_loaded(&mut self) -> Result<(), String> {
             Ok(())
         }
+
+        fn health_check(&mut self) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn recover(&mut self) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn tag_active(&self) -> bool {
+            false
+        }
     }
 
     /// Roles resolved from the real plippa-D-poc2 profile (no pin names here).
@@ -964,5 +1150,169 @@ mod tests {
             events.iter().any(|e| matches!(e, InputEvent::ControlButton { down: true, .. })),
             "expected the Play press edge in {events:?}"
         );
+    }
+
+    /// Scripted reader for watchdog tests: pops one result per call, then defaults to Ok.
+    #[derive(Default)]
+    struct WdNfc {
+        probes: std::collections::VecDeque<Result<(), String>>,
+        recovers: std::collections::VecDeque<Result<(), String>>,
+        tag: bool,
+        probe_calls: u32,
+        recover_calls: u32,
+    }
+
+    impl NfcBusOps for WdNfc {
+        fn poll_events(&mut self) -> Result<Vec<NfcEvent>, String> {
+            Ok(Vec::new())
+        }
+        fn write_first_ndef(&mut self, _: &[u8]) -> Result<(), String> {
+            Ok(())
+        }
+        fn poll_tag_present(&mut self) -> Result<bool, String> {
+            Ok(false)
+        }
+        fn set_loaded_uid(&mut self, _: Option<Vec<u8>>) {}
+        fn mark_field_tag_as_loaded(&mut self) -> Result<(), String> {
+            Ok(())
+        }
+        fn health_check(&mut self) -> Result<(), String> {
+            self.probe_calls += 1;
+            self.probes.pop_front().unwrap_or(Ok(()))
+        }
+        fn recover(&mut self) -> Result<(), String> {
+            self.recover_calls += 1;
+            self.recovers.pop_front().unwrap_or(Ok(()))
+        }
+        fn tag_active(&self) -> bool {
+            self.tag
+        }
+    }
+
+    fn secs(s: u64) -> Duration {
+        Duration::from_secs(s)
+    }
+
+    fn tick(wd: &mut NfcWatchdog, now: u64, nfc: &mut WdNfc, lines: &mut Vec<String>) -> bool {
+        wd.tick(secs(now), false, nfc, &mut |m| lines.push(m.to_string()))
+    }
+
+    #[test]
+    fn watchdog_healthy_reader_is_probed_without_recovery_or_logs() {
+        let (mut wd, mut nfc, mut lines) = (NfcWatchdog::new(), WdNfc::default(), vec![]);
+        assert!(!tick(&mut wd, 0, &mut nfc, &mut lines)); // schedules first probe
+        assert!(!tick(&mut wd, 9, &mut nfc, &mut lines));
+        assert!(tick(&mut wd, 10, &mut nfc, &mut lines));
+        assert_eq!((nfc.probe_calls, nfc.recover_calls), (1, 0));
+        assert!(!tick(&mut wd, 15, &mut nfc, &mut lines));
+        assert!(tick(&mut wd, 20, &mut nfc, &mut lines));
+        assert_eq!((nfc.probe_calls, nfc.recover_calls), (2, 0));
+        assert!(lines.is_empty());
+    }
+
+    #[test]
+    fn watchdog_failed_probe_recovers_once_then_reprobes() {
+        let (mut wd, mut nfc, mut lines) = (NfcWatchdog::new(), WdNfc::default(), vec![]);
+        nfc.probes.push_back(Err("echo mismatch".into()));
+        tick(&mut wd, 0, &mut nfc, &mut lines);
+        tick(&mut wd, 10, &mut nfc, &mut lines);
+        assert_eq!(nfc.recover_calls, 1);
+        assert_eq!(nfc.probe_calls, 2); // failed probe + re-probe after recover
+        assert_eq!(wd.recoveries(), 1);
+        assert_eq!(lines.len(), 2);
+        assert!(lines[0].contains("probe failed (echo mismatch)"));
+        assert!(lines[1].contains("recovered after reinit (#1)"));
+    }
+
+    #[test]
+    fn watchdog_failed_recovery_backs_off_then_retries() {
+        let (mut wd, mut nfc, mut lines) = (NfcWatchdog::new(), WdNfc::default(), vec![]);
+        for _ in 0..3 {
+            nfc.probes.push_back(Err("dead".into()));
+            nfc.recovers.push_back(Err("still dead".into()));
+        }
+        tick(&mut wd, 0, &mut nfc, &mut lines);
+        tick(&mut wd, 10, &mut nfc, &mut lines); // fail, retry in 1 s
+        assert_eq!(nfc.recover_calls, 1);
+        assert!(!tick(&mut wd, 10, &mut nfc, &mut lines));
+        tick(&mut wd, 11, &mut nfc, &mut lines); // fail, retry in 2 s
+        assert_eq!(nfc.recover_calls, 2);
+        assert!(!tick(&mut wd, 12, &mut nfc, &mut lines));
+        tick(&mut wd, 13, &mut nfc, &mut lines); // third failure; next one recovers
+        assert_eq!(nfc.recover_calls, 3);
+        nfc.probes.push_back(Err("dead".into())); // recover now succeeds (default)
+        tick(&mut wd, 17, &mut nfc, &mut lines);
+        assert_eq!(wd.recoveries(), 1);
+        assert!(lines.iter().any(|l| l.contains("recovery failed (still dead)")));
+        assert!(lines.last().unwrap().contains("recovered after reinit (#1)"));
+    }
+
+    #[test]
+    fn watchdog_backoff_is_capped() {
+        let (mut wd, mut nfc, mut lines) = (NfcWatchdog::new(), WdNfc::default(), vec![]);
+        for _ in 0..12 {
+            nfc.probes.push_back(Err("dead".into()));
+            nfc.recovers.push_back(Err("dead".into()));
+        }
+        tick(&mut wd, 0, &mut nfc, &mut lines);
+        let mut now = 10;
+        for _ in 0..8 {
+            tick(&mut wd, now, &mut nfc, &mut lines);
+            now = wd.next_probe.unwrap().as_secs();
+        }
+        let before = wd.next_probe.unwrap();
+        tick(&mut wd, before.as_secs(), &mut nfc, &mut lines);
+        assert_eq!(wd.next_probe.unwrap() - before, WATCHDOG_BACKOFF_CAP);
+    }
+
+    #[test]
+    fn watchdog_skips_probe_while_tag_active_or_write_pending() {
+        let (mut wd, mut nfc, mut lines) = (NfcWatchdog::new(), WdNfc::default(), vec![]);
+        tick(&mut wd, 0, &mut nfc, &mut lines);
+        nfc.tag = true;
+        assert!(!tick(&mut wd, 30, &mut nfc, &mut lines));
+        nfc.tag = false;
+        assert!(!wd.tick(secs(30), true, &mut nfc, &mut |_| {}));
+        assert_eq!(nfc.probe_calls, 0);
+        assert!(tick(&mut wd, 30, &mut nfc, &mut lines));
+        assert_eq!(nfc.probe_calls, 1);
+    }
+
+    #[test]
+    fn watchdog_hard_poll_failures_trigger_recovery_without_probe_due() {
+        let (mut wd, mut nfc, mut lines) = (NfcWatchdog::new(), WdNfc::default(), vec![]);
+        tick(&mut wd, 0, &mut nfc, &mut lines);
+        wd.note_poll(false);
+        wd.note_poll(false);
+        wd.note_poll(true); // a good poll resets the run
+        wd.note_poll(false);
+        wd.note_poll(false);
+        assert!(!tick(&mut wd, 1, &mut nfc, &mut lines));
+        wd.note_poll(false);
+        assert!(tick(&mut wd, 1, &mut nfc, &mut lines));
+        assert_eq!(nfc.recover_calls, 1);
+        assert_eq!(wd.recoveries(), 1);
+        // Forced recovery works even with a tag reported active.
+        nfc.tag = true;
+        for _ in 0..3 {
+            wd.note_poll(false);
+        }
+        tick(&mut wd, 100, &mut nfc, &mut lines);
+        assert_eq!(nfc.recover_calls, 2);
+    }
+
+    #[test]
+    fn watchdog_log_lines_are_rate_limited_but_counter_keeps_counting() {
+        let (mut wd, mut nfc, mut lines) = (NfcWatchdog::new(), WdNfc::default(), vec![]);
+        tick(&mut wd, 0, &mut nfc, &mut lines);
+        for t in [10, 20, 30] {
+            nfc.probes.push_back(Err("flap".into()));
+            tick(&mut wd, t, &mut nfc, &mut lines);
+        }
+        assert_eq!(wd.recoveries(), 3);
+        assert_eq!(lines.len(), 2); // one probe-failed + one recovered inside the first minute
+        nfc.probes.push_back(Err("flap".into()));
+        tick(&mut wd, 90, &mut nfc, &mut lines);
+        assert!(lines.last().unwrap().contains("(#4)"));
     }
 }
